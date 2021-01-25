@@ -26,7 +26,7 @@ export default interface Club extends Document {
   isMobileVerified?: boolean
 }
 
-const clubSchema = new Schema({
+const schema = new Schema({
   _id: Schema.Types.ObjectId,
   userType: { type: String, default: "Club" },
   inviteCode: { type: Number },
@@ -72,4 +72,4 @@ const clubSchema = new Schema({
   isMobileVerified: { type: Boolean, default: false },
 });
 
-export const ClubModel = model<Club>(DOCUMENT_NAME, clubSchema);
+export const ClubModel = model<Club>(DOCUMENT_NAME, schema);
