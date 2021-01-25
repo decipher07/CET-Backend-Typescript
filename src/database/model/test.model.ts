@@ -2,6 +2,16 @@ import { model, Schema, Document } from 'mongoose';
 
 export const DOCUMENT_NAME = 'Test';
 
+export interface responsesInGeneral {
+  questionId?: Schema.Types.ObjectId,
+  answers?: Array<any>,
+  questionType?:  String ,
+  questionMarks?: Number ,
+  corrected?: boolean ,
+  scoredQuestionMarks?: Number ,
+}
+
+
 export interface usersInterface {
   _id?: Boolean,
   studentId?: Schema.Types.ObjectId,
@@ -19,7 +29,7 @@ export interface usersStartedInterface {
 
 export interface usersFinishedInterface {
   studentId: Schema.Types.ObjectId,
-  responses: Array<any>,
+  responses: Array<responsesInGeneral>,
   marks?: Number,
   timeTaken?: Number ,
   corrected?:  Boolean ,
