@@ -3,22 +3,30 @@ import { model, Schema, Document } from 'mongoose';
 export const DOCUMENT_NAME = 'Test';
 
 export interface usersInterface {
-  _id: Boolean,
-  studentId: Schema.Types.ObjectId,
-  marks: Number,
-  corrected: Boolean,
-  responses: Array<string>,
+  _id?: Boolean,
+  studentId?: Schema.Types.ObjectId,
+  marks?: Number,
+  corrected?: Boolean,
+  responses?: Array<string>,
 }
 
 export interface usersStartedInterface {
-  studentId: { type: Schema.Types.ObjectId, ref: "Student" },
-  marks: { type: Number, default: 0 },
-  corrected: { type: Boolean, default: false },
-  responses: [],
+  studentId?: Schema.Types.ObjectId,
+  marks?: Number,
+  corrected?: Boolean,
+  responses?: Array<any>,
 }
 
+export interface usersFinishedInterface {
+  studentId: Schema.Types.ObjectId,
+  responses: Array<any>,
+  marks?: Number,
+  timeTaken?: Number ,
+  corrected?:  Boolean ,
+  submittedOn?: Number,
+}
 
-export default interface Student extends Document {
+export default interface Test extends Document {
   _id: any;
   clubId?: Schema.Types.ObjectId;
   roundType?: string;
@@ -30,10 +38,12 @@ export default interface Student extends Document {
   duration?: number;
   scheduledForDate?: number;
   scheduledEndDate?: number;
-  tests?: Array<testInter>;
+  users?: Array<usersInterface>;
+  usersStarted?: Array<usersStartedInterface>;
+  usersFinished?: Array<usersFinishedInterface>;
 }
 
-const schhema = new Schema({
+const schema = new Schema({
   _id: Schema.Types.ObjectId,
   clubId: { type: Schema.Types.ObjectId, ref: "Club" },
 
@@ -76,3 +86,5 @@ const schhema = new Schema({
     },
   ],
 });
+
+export const TestModel = model<Test>(DOCUMENT_NAME, schema);
