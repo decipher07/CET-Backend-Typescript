@@ -1,6 +1,6 @@
 import { model, Schema, Document } from 'mongoose';
 
-export const DOCUMENT_NAME = 'Student-Form';
+export const DOCUMENT_NAME = 'StudentForm';
 
 export default interface StudentForm extends Document {
   _id: any;
