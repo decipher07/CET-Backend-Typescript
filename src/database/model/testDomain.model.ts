@@ -3,7 +3,13 @@ import { usersStartedInterface, usersFinishedInterface } from './test.model'
 
 export const DOCUMENT_NAME = 'Domain';
 
-export default interface Test extends Document {
+export interface selectionsInDomain {
+  _id: boolean,
+  studentId: Schema.Types.ObjectId,
+  remark: String
+}
+
+export default interface Domain extends Document {
   _id: any;
   clubId?: Schema.Types.ObjectId;
   testId?: Schema.Types.ObjectId;
@@ -15,6 +21,8 @@ export default interface Test extends Document {
   domainMarks?: number;
   usersStarted?: Array <usersStartedInterface>;
   usersFinished?: Array <usersFinishedInterface>;
+  shortlistedInDomain?: Array <selectionsInDomain>;
+  selectedInDomain?: Array <selectionsInDomain>;
 }
 
 const schema = new Schema ({
@@ -56,7 +64,7 @@ const schema = new Schema ({
       submittedOn: { type: Number },
     },
   ],
-  shortlisedInDomain: [
+  shortlistedInDomain: [
     {
       _id: false,
       studentId: { type: Schema.Types.ObjectId, ref: "Student" },
@@ -71,3 +79,5 @@ const schema = new Schema ({
     },
   ],
 });
+
+export const UserModel = model<Domain>(DOCUMENT_NAME, schema);
