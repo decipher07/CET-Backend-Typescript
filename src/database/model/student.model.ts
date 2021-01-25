@@ -86,3 +86,6 @@ const schema = new Schema({
     },
   ],
 });
+
+
+export const ClubModel = model<Student>(DOCUMENT_NAME, schema);
