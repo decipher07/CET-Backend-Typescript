@@ -1,11 +1,9 @@
 import mongoose from 'mongoose';
 import Logger from '../core/Logger';
-import { db } from '../config';
+require('dotenv').config()
 
 // Build the connection string
-const dbURI = `mongodb://${db.user}:${encodeURIComponent(db.password)}@${db.host}:${db.port}/${
-  db.name
-}`;
+const dbURI = 'mongodb://127.0.0.1:27017/cet-typescript'
 
 const options = {
   useNewUrlParser: true,
