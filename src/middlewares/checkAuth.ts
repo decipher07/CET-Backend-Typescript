@@ -17,6 +17,7 @@ const checkAuth = asyncHandler(async (req: Request, res: Response, next: NextFun
   const token = req.headers.authorization.split(" ")[1];
 
   try {
+    // @ts-ignore
     const verified = verify(token, process.env.JWT_SECRET);
     req.user = verified;
     next();
