@@ -8,6 +8,7 @@ export default interface Club extends Document {
   inviteCode?: number;
   featured?: boolean;
   name: string;
+  email: string;
   username?: string;
   type?: string;
   mobileNumber?: number;
