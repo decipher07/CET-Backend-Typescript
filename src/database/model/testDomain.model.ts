@@ -80,4 +80,4 @@ const schema = new Schema ({
   ],
 });
 
-export const UserModel = model<Domain>(DOCUMENT_NAME, schema);
+export const DomainModel = model<Domain>(DOCUMENT_NAME, schema);

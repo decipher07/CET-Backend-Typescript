@@ -20,4 +20,4 @@ const schema = new Schema({
   __v: false,
 });
 
-export const QuestionModel = model<StudentForm>(DOCUMENT_NAME, schema);
+export const StudentFormModel = model<StudentForm>(DOCUMENT_NAME, schema);
