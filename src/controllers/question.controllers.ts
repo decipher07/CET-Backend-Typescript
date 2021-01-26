@@ -203,19 +203,19 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
       message: "1 or more parameter(s) missing from req.query",
     });
   }
-  await Domain.findById(domainId)
+  await DomainModel.findById(domainId)
     .populate(
       "clubId testId",
       "name email type roundNumber roundType instructions scheduledForDate scheduledEndDate graded"
     )
-    .then(async (domain) => {
+    .then(async (domain: Domain) => {// @ts-ignore
       if (domain.clubId._id != req.user.userId) {
         return res.status(403).json({
           message: "This is not your club!",
         });
       }
-      await Question.find({ testId, domainId })
-        .then(async (questions) => {
+      await QuestionModel.find({ testId, domainId })
+        .then(async (questions: Array <Question> ) => {
           res.status(200).json({
             clubDetails: domain.clubId,
             testDetails: domain.testId,
@@ -257,24 +257,24 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
 
 // @desc Add marks for a question for a student
 // @route POST /api/test/domain/question/marks
-const updateMarks = async (req, res, next) => {
+export const updateMarks = async (req: Request, res: Response, next: NextFunction) => {
   const { studentId, questionId, marks, domainId } = req.body;
 
-  let domain = await Domain.findOne({ _id: domainId });
+  let domain = await DomainModel.findOne({ _id: domainId });
 
   if (!domain) {
     return res.status(418).json({
       message: "Invalid parameters",
     });
   }
-
+// @ts-ignore
   if (domain.clubId != req.user.userId) {
     return res.status(403).json({
       message: "This is not your club!",
     });
   }
 
-  await Domain.updateOne(
+  await DomainModel.updateOne(
     { _id: domainId },
     {
       $set: { "usersFinished.$[i].responses.$[j].scoredQuestionMarks": marks },
@@ -307,23 +307,23 @@ const updateMarks = async (req, res, next) => {
 
 // @desc Delete a question
 // @route DELETE /api/test/domain/question/delete
-const deleteQuestion = async (req, res, next) => {
+export const deleteQuestion = async (req: Request, res: Response, next: NextFunction) => {
   const { questionId, testId } = req.body;
 
-  await Test.findById(testId)
-    .then(async (test) => {
+  await TestModel.findById(testId)
+    .then(async (test: Test) => {// @ts-ignore
       if (test.clubId != req.user.userId) {
         return res.status(403).json({
           message: "This is not your club!",
         });
-      } else {
+      } else {// @ts-ignore
         if (test.scheduledForDate <= Date.now()) {
           return res.status(409).json({
             message:
               "You can't delete the question since the test has already started",
           });
         } else {
-          await Question.deleteOne({ _id: questionId })
+          await QuestionModel.deleteOne({ _id: questionId })
             .then(async () => {
               res.status(200).json({
                 message: "Question successfully deleted",
