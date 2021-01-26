@@ -1,16 +1,17 @@
-import {Request, Response} from 'express'
+import { NextFunction, Request, Response } from 'express'
 import { Types } from 'mongoose'
-import {} from 'jsonwebtoken'
-import {hash} from 'bcrypt'
+import { sign } from 'jsonwebtoken'
+import { hash, compare } from 'bcrypt'
 import {} from 'multer'
 import * as sgMail from '@sendgrid/mail'
 import { createTransport } from 'nodemailer'
-import {} from 'aws-sdk'
+import { SES } from 'aws-sdk'
 import {} from '../core/ApiError'
 import Club, { ClubModel } from '../database/model/club.model'
 import Test, { TestModel } from '../database/model/test.model' // @ts-ignore
 import  { sendVerificationOTP, sendWelcomeMail }  from '../utils/emailTemplates'
 import {errorLogger} from '../utils/logger'
+import { UserRequest } from '../types/app-request'
 
 require('dotenv').config()
 
@@ -27,7 +28,7 @@ export const create = async (req: Request, res: Response) => {
       message: "1 or more parameter(s) missing from req.body",
     });
   }
-  await ClubModel.find({ email : String})
+  await ClubModel.find({ email : string})
     .then(async (clubs) => {
       if (clubs.length >= 1) {
         return res.status(409).json({
@@ -130,7 +131,7 @@ export const signup = async (req: Request, res: Response) => {
     });
   }
 
-  await ClubModel.find({ email : String})
+  await ClubModel.find({ email : string})
     .then( async (clubs: any) => {
       // @ts-ignore
       if (clubs.length < 1) {
@@ -219,7 +220,7 @@ export const signup = async (req: Request, res: Response) => {
 
 // @desc Resend email verification OTP for club
 // @route POST /api/club/email/resendOTP
-const resendOTP = async (req, res) => {
+export const resendOTP = async (req: Request, res: Response) => {
   const { email } = req.body;
 
   if (!email) {
@@ -228,8 +229,8 @@ const resendOTP = async (req, res) => {
     });
   }
 
-  await Club.findOne({ email })
-    .then(async (club) => {
+  await ClubModel.findOne({ email })
+    .then(async (club: Club) => {
       if (!club) {
         return res.status(404).json({
           message: "Invalid Email",
@@ -275,7 +276,7 @@ const resendOTP = async (req, res) => {
 
 // @desc Email verfication for clubs
 // @route POST /api/club/email/verify
-const verifyEmail = async (req, res) => {
+export const verifyEmail = async (req: Request, res: Response) => {
   const { email, emailVerificationCode } = req.body;
   const now = Date.now();
 
@@ -285,20 +286,20 @@ const verifyEmail = async (req, res) => {
     });
   }
 
-  await Club.findOne({
+  await ClubModel.findOne({
     email,
   })
-    .then(async (club) => {
+    .then(async (club: Club) => {
       if (club) {
-        if (club.emailVerificationCode == emailVerificationCode) {
+        if (club.emailVerificationCode == emailVerificationCode) {// @ts-ignore 
           if (club.emailVerificationCodeExpires > now) {
-            await Club.updateOne(
+            await ClubModel.updateOne(
               { _id: club._id },
               {
                 $set: { isEmailVerified: true },
                 $unset: {
-                  emailVerificationCode,
-                  emailVerificationCodeExpires,
+                  emailVerificationCode, // @ts-ignore
+                  emailVerificationCodeExpires, // @ts-ignore
                   inviteCode,
                 },
               }
@@ -308,7 +309,7 @@ const verifyEmail = async (req, res) => {
                   message: "Email successfully verified",
                 });
               })
-              .catch((err) => {
+              .catch((err: Error) => {
                 errorLogger.info(
                   `System: ${req.ip} | ${req.method} | ${
                     req.originalUrl
@@ -350,7 +351,7 @@ const verifyEmail = async (req, res) => {
 
 // @desc Login for clubs
 // @route POST /api/club/login
-const login = async (req, res) => {
+export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -359,8 +360,8 @@ const login = async (req, res) => {
     });
   }
 
-  await Club.find({ email })
-    .then(async (club) => {
+  await ClubModel.find({ email })
+    .then(async (club: Array<Club>) => {
       if (club.length < 1) {
         return res.status(401).json({
           message: "Auth failed!",
@@ -373,18 +374,17 @@ const login = async (req, res) => {
         });
       }
 
-      await bcrypt
-        .compare(password, club[0].password)
+      await compare(password, club[0].password as string)
         .then((result) => {
           if (result) {
-            const token = jwt.sign(
+            const token = sign(
               {
                 userType: "Club",
                 userId: club[0]._id,
                 email: club[0].email,
                 name: club[0].name,
                 username: club[0].username,
-              },
+              }, // @ts-ignore
               process.env.JWT_SECRET,
               {
                 expiresIn: "30d",
@@ -432,7 +432,7 @@ const login = async (req, res) => {
 
 // @desc Update club's profile
 // @route PATCH /api/club/profile
-const updateProfile = async (req, res, next) => {
+export const updateProfile = async (req: UserRequest, res: Response, next: NextFunction) => {
   const {
     name,
     type,
@@ -445,15 +445,15 @@ const updateProfile = async (req, res, next) => {
     password,
   } = req.body;
 
+  // @ts-ignore
   const clubId = req.user.userId;
 
-  await Club.findById(clubId)
-    .then(async (club) => {
-      await bcrypt
-        .compare(password, club.password)
+  await ClubModel.findById(clubId)
+    .then(async (club: Club) => { // @ts-ignore
+      await compare(password, club.password)
         .then(async (result) => {
           if (result) {
-            await Club.updateOne(
+            await ClubModel.updateOne(
               { _id: clubId },
               {
                 $set: {
@@ -518,14 +518,15 @@ const updateProfile = async (req, res, next) => {
 
 // @desc Get club's profile -- Only for club admin
 // @route GET /api/club/profile
-const getSelfProfile = async (req, res, next) => {
+export const getSelfProfile = async (req: Request, res: Response, next: NextFunction) => {
+  // @ts-ignore
   const clubId = req.user.userId;
 
-  await Club.findById(clubId)
+  await ClubModel.findById(clubId)
     .select(
       "name email type bio featured website username clubAvatar clubBanner clubImages socialMediaLinks mobileNumber typeOfPartner redirectURL"
     )
-    .then(async (club) => {
+    .then(async (club: Club) => {
       res.status(200).json({
         club,
       });
@@ -545,7 +546,7 @@ const getSelfProfile = async (req, res, next) => {
 
 // @desc Get club's details
 // @route GET /api/club/details
-const getClubDetails = async (req, res, next) => {
+export const getClubDetails = async (req: Request, res: Response, next: NextFunction) => {
   const { clubId } = req.query;
 
   if (!clubId) {
@@ -554,7 +555,7 @@ const getClubDetails = async (req, res, next) => {
     });
   }
 
-  await Club.findById(clubId)
+  await ClubModel.findById(clubId)
     .select(
       "name email type bio featured website username clubAvatar clubBanner clubImages socialMediaLinks mobileNumber typeOfPartner redirectURL"
     )
@@ -578,7 +579,7 @@ const getClubDetails = async (req, res, next) => {
 
 // @desc Get club's details via username
 // @route GET /api/club/details/username
-const getClubDetailsUsername = async (req, res, next) => {
+const getClubDetailsUsername = async (req: Request, res: Response, next: NextFunction) => {
   const { username } = req.query;
 
   if (!username) {
@@ -587,7 +588,7 @@ const getClubDetailsUsername = async (req, res, next) => {
     });
   }
 
-  await Club.findOne({ username })
+  await ClubModel.findOne({ username : String})
     .select(
       "name email type bio featured website username clubAvatar clubBanner clubImages socialMediaLinks mobileNumber typeOfPartner redirectURL"
     )
@@ -611,11 +612,11 @@ const getClubDetailsUsername = async (req, res, next) => {
 
 // @desc Feature or unfeature a club for recruitments
 // @route PATCH /api/club/feature
-const feature = async (req, res, next) => {
-  const { featured } = req.body;
+export const feature = async (req: Request, res: Response, next: NextFunction) => {
+  const { featured } = req.body; // @ts-ignore
   const clubId = req.user.userId;
 
-  await Club.updateOne(
+  await ClubModel.updateOne(
     {
       _id: clubId,
     },
@@ -645,8 +646,8 @@ const feature = async (req, res, next) => {
 
 // @desc Get all featured clubs
 // @route GET /api/club/allFeatured
-const getAllFeaturedClubs = async (req, res) => {
-  await Club.find({
+export const getAllFeaturedClubs = async (req: Request, res: Response) => {
+  await ClubModel.find({
     featured: true,
   })
     .select(
@@ -681,11 +682,12 @@ const getAllFeaturedClubs = async (req, res) => {
 };
 
 //
-const uploadProfilePicture = async (req, res, next) => {
-  const clubId = req.user.userId;
+export const uploadProfilePicture = async (req: Request, res: Response, next: NextFunction) => {
+  // @ts-ignore
+  const clubId = req.user.userId; // @ts-ignore
   const clubAvatar = req.file.location;
 
-  await Club.updateOne(
+  await ClubModel.updateOne(
     {
       _id: clubId,
     },
@@ -714,11 +716,12 @@ const uploadProfilePicture = async (req, res, next) => {
     });
 };
 
-const uploadBanner = async (req, res, next) => {
-  const clubId = req.user.userId;
+export const uploadBanner = async (req: Request, res: Response, next: NextFunction) => {
+  // @ts-ignore
+  const clubId = req.user.userId; // @ts-ignore
   const clubBanner = req.file.location;
 
-  await Club.updateOne(
+  await ClubModel.updateOne(
     {
       _id: clubId,
     },
@@ -747,11 +750,12 @@ const uploadBanner = async (req, res, next) => {
     });
 };
 
-const uploadImages = async (req, res, next) => {
-  const clubId = req.user.userId;
+export const uploadImages = async (req: Request, res: Response, next: NextFunction) => {
+  // @ts-ignore
+  const clubId = req.user.userId; // @ts-ignore
   const clubBanner = req.file.location;
 
-  await Club.updateOne(
+  await ClubModel.updateOne(
     {
       _id: clubId,
     },
@@ -780,14 +784,14 @@ const uploadImages = async (req, res, next) => {
     });
 };
 
-const sendSesOtp = (mailto, code) => {
+export const sendSesOtp = (mailto: String, code: String) => {
   const SES_CONFIG = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: "ap-south-1",
   };
 
-  const AWS_SES = new AWS.SES(SES_CONFIG);
+  const AWS_SES = new SES(SES_CONFIG);
   let params = {
     Source: "contact@codechefvit.com",
     Destination: {
@@ -797,7 +801,7 @@ const sendSesOtp = (mailto, code) => {
     Message: {
       Body: {
         Html: {
-          Charset: "UTF-8",
+          Charset: "UTF-8", //@ts-ignore
           Data: sendVerificationOTP(code),
         },
       },
@@ -808,6 +812,7 @@ const sendSesOtp = (mailto, code) => {
     },
   };
 
+  // @ts-ignore
   AWS_SES.sendEmail(params)
     .promise()
     .then(() => {
