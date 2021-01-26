@@ -9,7 +9,7 @@ import {verify} from 'jsonwebtoken'
 import { UserRequest } from '../types/app-request';
 require('dotenv').config()
 
-const authStudent = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
+const checkAuthStudent = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
   if (!req.headers.authorization)
     return res.status(401).json({
       message: "Access Denied! No token entered.",
@@ -34,3 +34,5 @@ const authStudent = asyncHandler(async (req: UserRequest, res: Response, next: N
     });
   }
 });
+
+export default checkAuthStudent
