@@ -1,22 +1,15 @@
 import { NextFunction, Request, Response } from 'express'
 import { Types } from 'mongoose'
-import { sign } from 'jsonwebtoken'
-import { hash, compare } from 'bcrypt'
-import * as sgMail from '@sendgrid/mail'
-import { createTransport } from 'nodemailer'
 import { SES } from 'aws-sdk'
 import Club, { ClubModel } from '../database/model/club.model'
 import Student, { StudentModel } from '../database/model/student.model'
 import Test, { TestModel } from '../database/model/test.model'
-import Question, { QuestionModel } from '../database/model/question.model'
 import Domain, { DomainModel } from '../database/model/testDomain.model'
 import  {   sendVerificationOTP,sendWelcomeMail, shortlistedMgmt, shortlistedCC, shortlistedFrontend, shortlistedApp,
   shortlistedBackend, shortlistedML, shortlistedCloud, shortlistedCCD3, shortlistedEditorialD3,
   shortlistedDesignD3, shortlistedMgmtD3, // @ts-ignore
   shortlistedEasterEgg, }  from '../utils/emailTemplates'
 import {errorLogger} from '../utils/logger'
-import { UserRequest } from '../types/app-request'
-import  domain  from 'process'
 require('dotenv').config()
 
 export const getAllClubs = async (req: Request, res: Response, next: NextFunction) => {
@@ -314,7 +307,7 @@ export const sendShortlistEmail = async (req: Request, res: Response) => {
     //   })
     //   .catch(() => {
     //     console.log(`Mail not sent:  ${params.Destination.ToAddresses}`);
-    //     // return false;
+    //     // return false;: Test 
     //   });
   }
   res.status(200).json({ message: "Done" });
