@@ -248,11 +248,11 @@ export const studentTestDashboard = async (req: Request, res: Response, next: Ne
 
 export const getDetailsOfMultipleStudents = async (req: Request, res: Response) => {
   const { studentsArr } = req.body;
-  let studentsFinalArray = [];
-  for (studentId of studentsArr) {
-    await Student.findById(studentId)
+  let studentsFinalArray: Array<Student> = []; // @ts-ignore
+  for (studentId of studentsArr) {// @ts-ignore
+    await StudentModel.findById(studentId)
       .select("name email mobileNumber")
-      .then(async (student) => {
+      .then(async (student: Student) => {
         studentsFinalArray.push(student);
       })
       .catch((err) => {
@@ -273,22 +273,22 @@ export const getDetailsOfMultipleStudents = async (req: Request, res: Response) 
   });
 };
 
-const sendShortlistEmail = async (req, res) => {
+export const sendShortlistEmail = async (req: Request, res: Response) => {
   const { emails } = req.body;
 
   const SES_CONFIG = {
-    accessKeyId: global.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: global.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: "ap-south-1",
   };
 
-  const AWS_SES = new AWS.SES(SES_CONFIG);
-
+  const AWS_SES = new SES(SES_CONFIG);
+  // @ts-ignore
   for (email of emails) {
     // console.log(student.studentId.email);
     let params = {
       Source: "contact@codechefvit.com",
-      Destination: {
+      Destination: {// @ts-ignore
         ToAddresses: [email],
       },
       ReplyToAddresses: [],
@@ -320,16 +320,16 @@ const sendShortlistEmail = async (req, res) => {
   res.status(200).json({ message: "Done" });
 };
 
-const sendWelcomeEmail = async (req, res) => {
+export const sendWelcomeEmail = async (req: Request, res: Response) => {
   const { emailArray } = req.body;
 
   const SES_CONFIG = {
-    accessKeyId: global.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: global.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: "ap-south-1",
   };
 
-  const AWS_SES = new AWS.SES(SES_CONFIG);
+  const AWS_SES = new SES(SES_CONFIG);
 
   let params = {
     Source: "contact@codechefvit.com",
@@ -361,18 +361,18 @@ const sendWelcomeEmail = async (req, res) => {
     });
 };
 
-const whitelistEmails = async (req, res) => {
+export const whitelistEmails = async (req: Request, res: Response) => {
   const { clubsArray } = req.body;
-
-  for (club of clubsArray) {
-    await Club.find({ email: club.email })
-      .then(async (clubs) => {
+  // @ts-ignore
+  for (club of clubsArray) {// @ts-ignore
+    await ClubModel.find({ email: club.email })
+      .then(async (clubs: Array<Club>) => {
         if (clubs.length >= 1) {
           console.log("Club already exists: ", clubs[0].email);
         } else {
-          let newClub = new Club({
-            _id: new mongoose.Types.ObjectId(),
-            email: club.email,
+          let newClub = new ClubModel({
+            _id: new Types.ObjectId(),// @ts-ignore
+            email: club.email,// @ts-ignore
             typeOfPartner: club.typeOfPartner,
           });
           await newClub
@@ -382,7 +382,7 @@ const whitelistEmails = async (req, res) => {
 
               let params = {
                 Source: "contact@codechefvit.com",
-                Destination: {
+                Destination: {// @ts-ignore
                   ToAddresses: [club.email],
                 },
                 ReplyToAddresses: [],
@@ -399,7 +399,15 @@ const whitelistEmails = async (req, res) => {
                   },
                 },
               };
-
+              
+              const SES_CONFIG = {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+                region: "ap-south-1",
+              };
+            
+              const AWS_SES = new SES(SES_CONFIG);
+              
               AWS_SES.sendEmail(params)
                 .promise()
                 .then(() => {
@@ -426,10 +434,10 @@ const whitelistEmails = async (req, res) => {
   });
 };
 
-const getAllSubmissionsOfDomain = async (req, res) => {
+export const getAllSubmissionsOfDomain = async (req: Request, res: Response) => {
   const { domainId } = req.query;
 
-  await Domain.findById(domainId)
+  await DomainModel.findById(domainId)
     .populate({
       path: "clubId testId usersFinished shortlisedInDomain",
       select:
@@ -441,7 +449,7 @@ const getAllSubmissionsOfDomain = async (req, res) => {
         populate: { path: "questionId", select: "description options" },
       },
     })
-    .then(async (domain) => {
+    .then(async (domain: Domain) => {
       res.status(200).json(domain);
     })
     .catch((err) => {
@@ -451,10 +459,10 @@ const getAllSubmissionsOfDomain = async (req, res) => {
     });
 };
 
-const getNumSubmissionOfAllDomains = async (req, res) => {
+export const getNumSubmissionOfAllDomains = async (req: Request, res: Response) => {
   const { testId } = req.query;
-
-  await Domain.find({ testId })
+  // @ts-ignore
+  await DomainModel.find({ testId })
     // .populate({
     //   path: "usersFinished testId",
     //   select: "responses",
@@ -466,11 +474,12 @@ const getNumSubmissionOfAllDomains = async (req, res) => {
     //   },
     // })
     .populate("testId", "roundType")
-    .then(async (domains) => {
+    .then(async (domains: Array <Domain>) => {
       // console.log(domains);
       // console.log(domains);
-      console.log(domains[0].testId.roundType);
-      for (i in domains) {
+      // @ts-ignore
+      console.log(domains[0].testId.roundType);// @ts-ignore
+      for (i in domains) {// @ts-ignore
         console.log(domains[i].domainName, domains[i].usersFinished.length);
       }
 
@@ -502,19 +511,19 @@ const getNumSubmissionOfAllDomains = async (req, res) => {
     });
 };
 
-const getNumSubmissionOfAllDomainsofMultipleTests = async (req, res) => {
+export const getNumSubmissionOfAllDomainsofMultipleTests = async (req: Request, res: Response) => {
   const { testIdArr } = req.body;
-  let studentIdsArr = [];
-  let uniqueArr = [];
-  console.log("-----------------------------");
-  for (testId of testIdArr) {
-    await Domain.find({ testId })
+  let studentIdsArr: Array <any> = [];
+  let uniqueArr: Array<any> = [];
+  console.log("-----------------------------");// @ts-ignore
+  for (testId of testIdArr) {// @ts-ignore
+    await DomainModel.find({ testId })
       .populate("testId", "roundType")
-      .then(async (domains) => {
-        console.log(domains[0].testId.roundType);
-        for (i in domains) {
-          console.log(domains[i].domainName, domains[i].usersFinished.length);
-          for (j in domains[i].usersFinished) {
+      .then(async (domains: Array<Domain>) => {// @ts-ignore
+        console.log(domains[0].testId.roundType);// @ts-ignore
+        for (i in domains) {// @ts-ignore
+          console.log(domains[i].domainName, domains[i].usersFinished.length);// @ts-ignore
+          for (j in domains[i].usersFinished) {// @ts-ignore
             studentIdsArr.push(domains[i].usersFinished[j].studentId);
           }
         }
@@ -678,13 +687,13 @@ const getAllShortlistedStudentsOfClub = async (req, res) => {
     });
 };
 
-const getShortlistedStudentsMultipleDomains = async (req, res) => {
+export const getShortlistedStudentsMultipleDomains = async (req: Request, res: Response) => {
   const { domainIdsArr } = req.body;
-  let studentArr = [];
+  let studentArr: Array <Student> = [];
   for (let domain of domainIdsArr) {
     // console.log(domain);
 
-    await Domain.findById(domain)
+    await DomainModel.findById(domain)
       .populate(
         "shortlisedInDomain.studentId testId",
         "name registrationNumber email mobileNumber roundType"
