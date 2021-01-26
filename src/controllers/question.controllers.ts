@@ -1,19 +1,10 @@
 import { NextFunction, Request, Response } from 'express'
 import { Types } from 'mongoose'
-import { sign } from 'jsonwebtoken'
-import { hash, compare } from 'bcrypt'
-import * as sgMail from '@sendgrid/mail'
-import { createTransport } from 'nodemailer'
-import { SES } from 'aws-sdk'
-import Club, { ClubModel } from '../database/model/club.model'
-import Student, { StudentModel } from '../database/model/student.model'
 import Test, { TestModel } from '../database/model/test.model'
 import Question, { QuestionModel } from '../database/model/question.model'
 import Domain, {DomainModel} from '../database/model/testDomain.model'
 // @ts-ignore
-import  { sendVerificationOTP, sendWelcomeMail }  from '../utils/emailTemplates'
 import {errorLogger} from '../utils/logger'
-import { UserRequest } from '../types/app-request'
 
 // @desc Add a question to a test
 // @route GET /api/question/add
