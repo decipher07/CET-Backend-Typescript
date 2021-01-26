@@ -51,3 +51,5 @@ const recaptcha = asyncHandler(async (req: Request, res: Response, next: NextFun
     }
   );
 });
+
+export default recaptcha
