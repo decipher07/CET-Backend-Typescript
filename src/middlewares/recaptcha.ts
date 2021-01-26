@@ -1,9 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import asyncHandler from '../helpers/asyncHandler'
 require('dotenv').config()
-
-const request = require('request')
-import {RequestAsJSON} from 'request'
+import request from 'request'
 
 const recaptcha = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   if (!req.body.captcha) {
