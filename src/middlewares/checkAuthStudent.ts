@@ -1,14 +1,15 @@
 import {
+  Request,
   Response,
   NextFunction
 } from 'express'
 import asyncHandler from '../helpers/asyncHandler'
 
 import {verify} from 'jsonwebtoken'
-import { UserRequest } from '../types/app-request'
+import { UserRequest } from '../types/app-request';
 require('dotenv').config()
 
-const checkAuthClub = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
+const authStudent = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
   if (!req.headers.authorization)
     return res.status(401).json({
       message: "Access Denied! No token entered.",
@@ -17,15 +18,14 @@ const checkAuthClub = asyncHandler(async (req: UserRequest, res: Response, next:
   const token = req.headers.authorization.split(" ")[1];
 
   try {
-    //@ts-ignore
+    // @ts-ignore
     const verified = verify(token, process.env.JWT_SECRET);
     req.user = verified;
-    
-    if (req.user.userType === "Club") {
+    if (req.user.userType === "Student") {
       next();
     } else {
       return res.status(403).json({
-        message: "Not a Club",
+        message: "Not a student",
       });
     }
   } catch (err) {
@@ -33,6 +33,4 @@ const checkAuthClub = asyncHandler(async (req: UserRequest, res: Response, next:
       message: "Auth failed!",
     });
   }
-})
-
-export default checkAuthClub;
+});
