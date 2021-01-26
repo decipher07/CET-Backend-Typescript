@@ -23,7 +23,8 @@ export default interface Club extends Document {
   numOfTestsPublished?: number,
   emailVerificationCode?: number,
   emailVerificationCodeExpires?: number,
-  isMobileVerified?: boolean
+  isMobileVerified?: boolean,
+  isEmailVerified?: boolean
 }
 
 const schema = new Schema({
