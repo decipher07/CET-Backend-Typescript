@@ -28,7 +28,7 @@ export const create = async (req: Request, res: Response) => {
       message: "1 or more parameter(s) missing from req.body",
     });
   }
-  await ClubModel.find({ email : string})
+  await ClubModel.find({ email })
     .then(async (clubs) => {
       if (clubs.length >= 1) {
         return res.status(409).json({
@@ -131,7 +131,7 @@ export const signup = async (req: Request, res: Response) => {
     });
   }
 
-  await ClubModel.find({ email : string})
+  await ClubModel.find({ email })
     .then( async (clubs: any) => {
       // @ts-ignore
       if (clubs.length < 1) {
@@ -243,7 +243,7 @@ export const resendOTP = async (req: Request, res: Response) => {
       await club
         .save()
         .then(async () => {
-          const emailSent = sendSesOtp(email, club.emailVerificationCode);
+          const emailSent = sendSesOtp(email, club.emailVerificationCode as Number);
 
           res.status(200).json({
             message: "Email verification OTP Sent",
@@ -587,8 +587,8 @@ const getClubDetailsUsername = async (req: Request, res: Response, next: NextFun
       message: "1 or more parameter(s) missing from req.query",
     });
   }
-
-  await ClubModel.findOne({ username : String})
+  // @ts-ignore
+  await ClubModel.findOne({ username })
     .select(
       "name email type bio featured website username clubAvatar clubBanner clubImages socialMediaLinks mobileNumber typeOfPartner redirectURL"
     )
@@ -784,7 +784,7 @@ export const uploadImages = async (req: Request, res: Response, next: NextFuncti
     });
 };
 
-export const sendSesOtp = (mailto: String, code: String) => {
+export const sendSesOtp = (mailto: String, code: Number) => {
   const SES_CONFIG = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
