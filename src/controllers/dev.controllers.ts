@@ -543,12 +543,12 @@ export const getNumSubmissionOfAllDomainsofMultipleTests = async (req: Request, 
   });
 };
 
-const removeUsersFinished = async (req, res, next) => {
+export const removeUsersFinished = async (req: Request, res: Response, next: NextFunction) => {
   const { domainId, studentId } = req.body;
-  await Domain.updateOne(
+  await DomainModel.updateOne(
     { _id: domainId },
     {
-      $pull: { usersFinished: { studentId } },
+      $pull: { usersFinished: { studentId } },// @ts-ignore
       $pull: { usersStarted: { studentId } },
     }
   )
@@ -563,8 +563,8 @@ const removeUsersFinished = async (req, res, next) => {
     });
 };
 
-const findUserByEmail = async (req, res, next) => {
-  const student = await Student.findOne({ email: req.body.email });
+export const findUserByEmail = async (req: Request, res: Response, next: NextFunction) => {
+  const student = await StudentModel.findOne({ email: req.body.email });
   if (!student) {
     return res.status(404).json({
       message: "Student not found",
@@ -574,20 +574,21 @@ const findUserByEmail = async (req, res, next) => {
   }
 };
 
-const getTotalUsersStarted = async (req, res) => {
+export const getTotalUsersStarted = async (req: Request, res: Response) => {
   const { testIdArr } = req.body;
-  let studentIdsArr = [];
-
-  console.log("-----------------------------");
-  for (testId of testIdArr) {
-    await Domain.find({ testId })
+  let studentIdsArr : Array <any> = [];
+  let uniqueArr: Array<any> = [];
+  
+  console.log("-----------------------------");// @ts-ignore
+  for (testId of testIdArr) {// @ts-ignore
+    await DomainModel.find({ testId })
       .populate("testId", "roundType")
-      .then(async (domains) => {
-        console.log(domains[0].testId.roundType);
-        for (i in domains) {
-          console.log(domains[i].domainName, domains[i].usersStarted.length);
-          for (j in domains[i].usersStarted) {
-            studentIdsArr.push(domains[i].usersStarted[j].studentId);
+      .then(async (domains: Array <Domain>) => {// @ts-ignore
+        console.log(domains[0].testId.roundType);// @ts-ignore
+        for (i in domains) {// @ts-ignore
+          console.log(domains[i].domainName, domains[i].usersStarted.length);// @ts-ignore
+          for (j in domains[i].usersStarted) {// @ts-ignore
+            studentIdsArr.push(domains[i].usersStarted[j].studentId);// @ts-ignore
           }
         }
         console.log("-----------------------------");
@@ -607,10 +608,10 @@ const getTotalUsersStarted = async (req, res) => {
   });
 };
 
-const getShortlistedStudentsOfADomain = async (req, res) => {
+export const getShortlistedStudentsOfADomain = async (req: Request, res: Response) => {
   const { domainId } = req.query;
 
-  await Domain.findById(domainId)
+  await DomainModel.findById(domainId)
     .populate(
       "shortlisedInDomain.studentId testId",
       "name registrationNumber email mobileNumber roundType"
@@ -618,11 +619,11 @@ const getShortlistedStudentsOfADomain = async (req, res) => {
     // .populate({
     //   path: ""
     // })
-    .then(async (domain) => {
+    .then(async (domain: Domain) => {
       // console.log(domain.testId);
-      res.status(200).json({
+      res.status(200).json({// @ts-ignore
         testName: domain.testId.roundType,
-        domainName: domain.domainName,
+        domainName: domain.domainName,// @ts-ignore
         shortlistedInDomain: domain.shortlisedInDomain,
       });
     })
@@ -633,36 +634,37 @@ const getShortlistedStudentsOfADomain = async (req, res) => {
     });
 };
 
-const getAllShortlistedStudentsOfClub = async (req, res) => {
+export const getAllShortlistedStudentsOfClub = async (req: Request, res: Response) => {
   const { clubId } = req.query;
 
-  let studentArr = [];
-
-  await Test.find({ clubId })
-    .then(async (tests) => {
-      for (test of tests) {
-        await Domain.find({ testId: test._id })
+  let studentArr : Array <Student>= [];
+  // @ts-ignore
+  await TestModel.find({ clubId })
+    .then(async (tests: Array <Test>) => {// @ts-ignore
+      for (test of tests) {// @ts-ignore
+        await DomainModel.find({ testId: test._id })
           .populate(
             "shortlisedInDomain.studentId testId",
             "name registrationNumber email mobileNumber roundType"
           )
-          .then(async (domains) => {
+          .then(async (domains: Array <Domain> ) => {
             for (let domain of domains) {
               // if (domain.shortlisedInDomain) {
               // console.log("adasd");
+              // @ts-ignore
               for (let student of domain.shortlisedInDomain) {
                 // console.log(student);
                 // console.log(domain.shortlisedInDomain);
-                let studentObj = {};
-                studentObj.studentId = student.studentId._id;
-                studentObj.name = student.studentId.name;
-                studentObj.email = student.studentId.email;
-                studentObj.registrationNumber =
-                  student.studentId.registrationNumber;
-                studentObj.mobileNumber = student.studentId.mobileNumber;
-                studentObj.domainName = domain.domainName;
-                studentObj.testName = domain.testId.roundType;
-                studentObj.testRemark = student.remark;
+                let studentObj = {};// @ts-ignore
+                studentObj.studentId = student.studentId._id;// @ts-ignore
+                studentObj.name = student.studentId.name;// @ts-ignore
+                studentObj.email = student.studentId.email;// @ts-ignore
+                studentObj.registrationNumber =// @ts-ignore
+                student.studentId.registrationNumber;// @ts-ignore
+                studentObj.mobileNumber = student.studentId.mobileNumber;// @ts-ignore
+                studentObj.domainName = domain.domainName;// @ts-ignore
+                studentObj.testName = domain.testId.roundType;// @ts-ignore
+                studentObj.testRemark = student.remark;// @ts-ignore
 
                 // console.log(studentObj);
                 studentArr.push(studentObj);
@@ -698,19 +700,20 @@ export const getShortlistedStudentsMultipleDomains = async (req: Request, res: R
         "shortlisedInDomain.studentId testId",
         "name registrationNumber email mobileNumber roundType"
       )
-      .then(async (domain) => {
+      .then(async (domain: Domain) => {
         // console.log(domain);
         // for (let domain of domains) {
-        for (let student of domain.shortlisedInDomain) {
-          let studentObj = {};
-          studentObj.studentId = student.studentId._id;
-          studentObj.name = student.studentId.name;
-          studentObj.email = student.studentId.email;
-          studentObj.registrationNumber = student.studentId.registrationNumber;
-          studentObj.mobileNumber = student.studentId.mobileNumber;
-          studentObj.domainName = domain.domainName;
-          studentObj.testName = domain.testId.roundType;
-          studentObj.testRemark = student.remark;
+        // @ts-ignore
+        for (let student of domain?.shortlisedInDomain) {
+          let studentObj = {};// @ts-ignore
+          studentObj.studentId = student?.studentId?._id;// @ts-ignore
+          studentObj.name = student?.studentId?.name;// @ts-ignore
+          studentObj.email = student?.studentId?.email;// @ts-ignore
+          studentObj.registrationNumber = student?.studentId?.registrationNumber;// @ts-ignore
+          studentObj.mobileNumber = student.studentId?.mobileNumber;// @ts-ignore
+          studentObj.domainName = domain?.domainName;// @ts-ignore
+          studentObj.testName = domain.testId?.roundType;// @ts-ignore
+          studentObj.testRemark = student?.remark;// @ts-ignore
 
           studentArr.push(studentObj);
         }
