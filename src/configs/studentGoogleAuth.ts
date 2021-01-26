@@ -1,0 +1,10 @@
+import passport from 'passport'
+import {Strategy as GoogleStrategy} from 'passport-google-oauth20'
+import * as sgMail from '@sendgrid/mail'
+import {}  from 'jsonwebtoken'
+import {} from 'mongoose'
+import {} from 'nodemailer'
+import {} from 'aws-sdk'
+import  Student  from '../database/model/student.model'
+import  sendVerificationOTP  from '../utils/emailTemplates'
+require('dotenv')

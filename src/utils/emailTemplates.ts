@@ -5353,7 +5353,7 @@ const shortlistedEasterEgg= () => {
     </html>`;
 };
 
-module.exports = {
+export = {
   sendVerificationOTP,
   sendForgotPasswordMail,
   sendWelcomeMail,
