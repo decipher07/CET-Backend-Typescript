@@ -432,7 +432,7 @@ export const getAllSubmissionsOfDomain = async (req: Request, res: Response) => 
 
   await DomainModel.findById(domainId)
     .populate({
-      path: "clubId testId usersFinished shortlisedInDomain",
+      path: "clubId testId usersFinished shortlistedInDomain",
       select:
         "name email type roundNumber roundType instructions scheduledForDate scheduledEndDate graded responses",
       populate: {
@@ -606,7 +606,7 @@ export const getShortlistedStudentsOfADomain = async (req: Request, res: Respons
 
   await DomainModel.findById(domainId)
     .populate(
-      "shortlisedInDomain.studentId testId",
+      "shortlistedInDomain.studentId testId",
       "name registrationNumber email mobileNumber roundType"
     )
     // .populate({
@@ -617,7 +617,7 @@ export const getShortlistedStudentsOfADomain = async (req: Request, res: Respons
       res.status(200).json({// @ts-ignore
         testName: domain.testId.roundType,
         domainName: domain.domainName,// @ts-ignore
-        shortlistedInDomain: domain.shortlisedInDomain,
+        shortlistedInDomain: domain.shortlistedInDomain,
       });
     })
     .catch((err) => {
@@ -637,17 +637,17 @@ export const getAllShortlistedStudentsOfClub = async (req: Request, res: Respons
       for (test of tests) {// @ts-ignore
         await DomainModel.find({ testId: test._id })
           .populate(
-            "shortlisedInDomain.studentId testId",
+            "shortlistedInDomain.studentId testId",
             "name registrationNumber email mobileNumber roundType"
           )
           .then(async (domains: Array <Domain> ) => {
             for (let domain of domains) {
-              // if (domain.shortlisedInDomain) {
+              // if (domain.shortlistedInDomain) {
               // console.log("adasd");
               // @ts-ignore
-              for (let student of domain.shortlisedInDomain) {
+              for (let student of domain.shortlistedInDomain) {
                 // console.log(student);
-                // console.log(domain.shortlisedInDomain);
+                // console.log(domain.shortlistedInDomain);
                 let studentObj = {};// @ts-ignore
                 studentObj.studentId = student.studentId._id;// @ts-ignore
                 studentObj.name = student.studentId.name;// @ts-ignore
@@ -690,14 +690,14 @@ export const getShortlistedStudentsMultipleDomains = async (req: Request, res: R
 
     await DomainModel.findById(domain)
       .populate(
-        "shortlisedInDomain.studentId testId",
+        "shortlistedInDomain.studentId testId",
         "name registrationNumber email mobileNumber roundType"
       )
       .then(async (domain: Domain) => {
         // console.log(domain);
         // for (let domain of domains) {
         // @ts-ignore
-        for (let student of domain?.shortlisedInDomain) {
+        for (let student of domain?.shortlistedInDomain) {
           let studentObj = {};// @ts-ignore
           studentObj.studentId = student?.studentId?._id;// @ts-ignore
           studentObj.name = student?.studentId?.name;// @ts-ignore

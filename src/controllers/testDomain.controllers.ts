@@ -18,7 +18,7 @@ require('dotenv').config()
 
 // @desc Add a domain to a test
 // @route POST /api/test/domain/add
-const addDomain = async (req, res, next) => {
+export const addDomain = async (req: Request, res: Response, next: NextFunction) => {
   const {
     testId,
     domainName,
@@ -35,8 +35,8 @@ const addDomain = async (req, res, next) => {
 
   let flag = 0;
 
-  await Test.findById(testId)
-    .then(async (test) => {
+  await TestModel.findById(testId)
+    .then(async (test: Test) => { // @ts-ignore
       if (test.clubId != req.user.userId) {
         flag = 1;
       }
@@ -58,9 +58,10 @@ const addDomain = async (req, res, next) => {
       message: "This is not your club!",
     });
   }
+  // @ts-ignore
   let clubId = req.user.userId;
-  const domain = new Domain({
-    _id: new mongoose.Types.ObjectId(),
+  const domain = new DomainModel({
+    _id: new Types.ObjectId(),
     testId,
     clubId,
     domainName,
@@ -71,7 +72,7 @@ const addDomain = async (req, res, next) => {
 
   await domain
     .save()
-    .then(async (result) => {
+    .then(async (result: Domain) => {
       res.status(201).json({
         message: "Domain successfully added",
         domainInfo: result,
@@ -92,7 +93,7 @@ const addDomain = async (req, res, next) => {
 
 // @desc Get all domains of a test
 // @route GET /api/test/domain/all
-const getAllDomainsOfATest = async (req, res, next) => {
+export const getAllDomainsOfATest = async (req: Request, res: Response, next: NextFunction) => {
   const { testId } = req.query;
 
   if (!testId) {
@@ -101,9 +102,10 @@ const getAllDomainsOfATest = async (req, res, next) => {
     });
   }
 
-  await Domain.find({ testId })
+  // @ts-ignore
+  await DomainModel.find({ testId })
     .select("-__v")
-    .then(async (domains) => {
+    .then(async (domains: Array<Domain>) => {
       res.status(200).json({
         domains,
       });
@@ -123,7 +125,7 @@ const getAllDomainsOfATest = async (req, res, next) => {
 
 // @desc Get details of a domain
 // @route GET /api/test/domain/details
-const getDetailsOfDomain = async (req, res, next) => {
+export const getDetailsOfDomain = async (req: Request, res: Response, next: NextFunction) => {
   const { domainId } = req.query;
 
   if (!domainId) {
@@ -132,15 +134,15 @@ const getDetailsOfDomain = async (req, res, next) => {
     });
   }
 
-  await Domain.findById(domainId)
+  await DomainModel.findById(domainId)
     .populate(
       "clubId testId",
       "-usersFinished -usersStarted -users -emailVerificationCode -emailVerificationCodeExpires -password "
     )
     .select(
-      "-usersStarted -usersFinished -shortlisedInDomain -selectedInDomain"
+      "-usersStarted -usersFinished -shortlistedInDomain -selectedInDomain"
     )
-    .then(async (domain) => {
+    .then(async (domain: Domain) => {
       res.status(200).json({
         clubDetails: domain.clubId,
         testDetails: domain.testId,
@@ -169,7 +171,7 @@ const getDetailsOfDomain = async (req, res, next) => {
 
 // @desc Finalize a domain
 // @route PATCH /api/test/domain/finalize
-const finalizeDomain = async (req, res, next) => {
+export const finalizeDomain = async (req: Request, res: Response, next: NextFunction) => {
   const { domainId } = req.body;
 
   if (!domainId) {
@@ -177,13 +179,14 @@ const finalizeDomain = async (req, res, next) => {
       message: "1 or more parameter(s) missing from req.query",
     });
   }
-  const domain = await Domain.findById(domainId);
+  // @ts-ignore
+  const domain: Domain = await DomainModel.findById(domainId);// @ts-ignore
   if (domain.clubId != req.user.userId) {
     return res.status(402).json({
       message: "This is not your club!",
     });
   }
-  await Domain.updateOne({ _id: domainId }, { published: true })
+  await DomainModel.updateOne({ _id: domainId }, { published: true })
     .then(async () => {
       res.status(200).json({
         message: "Domain published successfully",
@@ -204,14 +207,14 @@ const finalizeDomain = async (req, res, next) => {
 
 // @desc Attempt a domain
 // @route POST /api/test/domain/attempt
-const attemptDomain = async (req, res, next) => {
-  const { testId, domainId } = req.body;
+export const attemptDomain = async (req: Request, res: Response, next: NextFunction) => {
+  const { testId, domainId } = req.body;// @ts-ignore
   const studentId = req.user.userId;
   const now = Date.now();
   let startCount = 0;
   let submitCount = 0;
   let flag = 0;
-  let questionsArr = [];
+  let questionsArr : Array <Question> = [];
 
   if (!testId || !domainId) {
     return res.status(400).json({
@@ -219,10 +222,11 @@ const attemptDomain = async (req, res, next) => {
     });
   }
 
-  await Test.findById(testId)
+  await TestModel.findById(testId)
     .populate("clubId", "name email type")
-    .then(async (test) => {
+    .then(async (test: Test) => {
       //Check if test hasn't started
+      // @ts-ignore
       if (test.scheduledForDate > now) {
         return res.status(418).json({
           message: "Test hasn't started yet",
@@ -230,22 +234,24 @@ const attemptDomain = async (req, res, next) => {
       }
 
       //Check if test is over
+      // @ts-ignore
       if (test.scheduledEndDate <= now) {
         return res.status(420).json({
           message: "Test is over",
         });
       }
 
-      await Domain.findById(domainId)
-        .then(async (domain) => {
+      await DomainModel.findById(domainId)
+        .then(async (domain: Domain) => {
           //Check if the student has already attempted this domain
-          for (i in domain.usersStarted) {
+          // @ts-ignore
+          for (i in domain.usersStarted) {// @ts-ignore
             if (domain.usersStarted[i].studentId == studentId) {
               startCount += 1;
             }
           }
-
-          for (i in domain.usersFinished) {
+// @ts-ignore
+          for (i in domain.usersFinished) {// @ts-ignore
             if (domain.usersFinished[i].studentId == studentId) {
               submitCount += 1;
             }
@@ -256,41 +262,41 @@ const attemptDomain = async (req, res, next) => {
             });
           }
 
-          await Domain.updateOne(
+          await DomainModel.updateOne(
             { _id: domainId },
             { $push: { usersStarted: { studentId } } }
           )
             .then(async () => {
-              await Student.updateOne(
+              await StudentModel.updateOne(
                 { _id: studentId, "tests.testId": testId },
                 {
                   $push: { "tests.$.domains": { domainId, status: "Started" } },
                 }
               )
                 .then(async () => {
-                  await Question.find({ testId, domainId })
-                    .then(async (questions) => {
-                      for (let question of questions) {
-                        let obj = {};
-                        obj.questionId = question._id;
-                        obj.questionType = question.type;
-                        obj.questionMarks = question.questionMarks;
-                        obj.description = question.description;
-                        if (question.media.type) {
-                          obj.media = question.media;
-                          obj.mediaURL = question.mediaURL;
-                        }
-                        if (question.options.length >= 1) {
-                          obj.options = [];
-
+                  await QuestionModel.find({ testId, domainId })
+                    .then(async (questions: Array <Question>) => {// @ts-ignore
+                      for (let question of questions) { 
+                        let obj = {};// @ts-ignore
+                        obj.questionId = question._id;// @ts-ignore
+                        obj.questionType = question.type;// @ts-ignore
+                        obj.questionMarks = question.questionMarks;// @ts-ignore
+                        obj.description = question.description;// @ts-ignore
+                        if (question.media.type) {// @ts-ignore
+                          obj.media = question.media;// @ts-ignore
+                          obj.mediaURL = question.mediaURL;// @ts-ignore
+                        }// @ts-ignore
+                        if (question.options.length >= 1) {// @ts-ignore
+                          obj.options = [];// @ts-ignore
+// @ts-ignore
                           for (let option of question.options) {
-                            let optionObj = {};
-                            optionObj.optionId = option._id;
-                            optionObj.text = option.option.text;
-                            obj.options.push(optionObj);
+                            let optionObj = {};// @ts-ignore
+                            optionObj.optionId = option._id;// @ts-ignore
+                            optionObj.text = option.option.text;// @ts-ignore
+                            obj.options.push(optionObj);// @ts-ignore
                           }
                         }
-
+                          // @ts-ignore
                         questionsArr.push(obj);
                       }
                       res.status(200).json({
@@ -390,8 +396,8 @@ const attemptDomain = async (req, res, next) => {
 
 // @desc Submit answers for a domain
 // @route POST /api/test/domain/submit
-const submitDomain = async (req, res, next) => {
-  const { submissions, domainId, testId, clubId, timeTaken } = req.body;
+export const submitDomain = async (req: Request, res: Response, next: NextFunction) => {
+  const { submissions, domainId, testId, clubId, timeTaken } = req.body;// @ts-ignore
   const studentId = req.user.userId;
 
   if (!submissions || !domainId || !timeTaken) {
@@ -408,10 +414,11 @@ const submitDomain = async (req, res, next) => {
   var autoCorrectCount = 0;
   let submitCount = 0;
 
-  await Domain.findById(domainId)
-    .then(async (domain) => {
+  await DomainModel.findById(domainId)
+    .then(async (domain: Domain) => {
       //Check if the student has already attempted this domain
-      for (i in domain.usersFinished) {
+      // @ts-ignore
+      for (i in domain.usersFinished) {// @ts-ignore
         if (domain.usersFinished[i].studentId == studentId) {
           submitCount++;
           break;
@@ -435,19 +442,19 @@ const submitDomain = async (req, res, next) => {
       message: "You have already attempted this domain",
     });
   }
-
+  // @ts-ignore
   for (i = 0; i < submissions.length; i++) {
-    answerObj = {};
+    answerObj = {};// @ts-ignore
     let response = submissions[i]; //currentQuestionDetails
-    let question = await Question.findById(response.questionId);
+    let question: Question = await QuestionModel.findById(response.questionId);
 
     if (question.type == "singleCorrect") {
       let numOptions = question.options.length;
       let correctAnswer;
       let scoredQuestionMarks = 0;
 
-      for (let j = 0; j < numOptions; j++) {
-        if (question.options[j].option.isCorrect) {
+      for (let j = 0; j < numOptions; j++) {// @ts-ignore
+        if (question.options[j].option.isCorrect) {// @ts-ignore
           correctAnswer = question.options[j]._id.toString();
         }
       }
@@ -456,13 +463,13 @@ const submitDomain = async (req, res, next) => {
         score += question.questionMarks;
         scoredQuestionMarks = question.questionMarks;
       }
-
-      answerObj.questionId = question._id;
-      answerObj.questionType = question.type;
-      answerObj.correctAnswer = correctAnswer;
-      answerObj.questionMarks = question.questionMarks;
-      answerObj.answers = response.answers;
-      answerObj.scoredQuestionMarks = scoredQuestionMarks;
+      // @ts-ignore
+      answerObj.questionId = question._id;// @ts-ignore
+      answerObj.questionType = question.type;// @ts-ignore
+      answerObj.correctAnswer = correctAnswer;// @ts-ignore
+      answerObj.questionMarks = question.questionMarks;// @ts-ignore
+      answerObj.answers = response.answers;// @ts-ignore
+      answerObj.scoredQuestionMarks = scoredQuestionMarks;// @ts-ignore
       answerObj.corrected = true;
 
       studentAnswers.push(answerObj);
@@ -471,8 +478,8 @@ const submitDomain = async (req, res, next) => {
       let correctAnswersArr = [];
       let scoredQuestionMarks = 0;
 
-      for (let j = 0; j < numOptions; j++) {
-        if (question.options[j].option.isCorrect) {
+      for (let j = 0; j < numOptions; j++) {// @ts-ignore
+        if (question.options[j].option.isCorrect) {// @ts-ignore
           correctAnswersArr.push(question.options[j]._id.toString());
         }
       }
@@ -492,33 +499,33 @@ const submitDomain = async (req, res, next) => {
         score += question.questionMarks;
         scoredQuestionMarks = question.questionMarks;
       }
-
-      answerObj.questionId = question._id;
-      answerObj.questionType = question.type;
-      answerObj.correctAnswer = correctAnswersArr;
-      answerObj.questionMarks = question.questionMarks;
-      answerObj.answers = response.answers;
-      answerObj.scoredQuestionMarks = scoredQuestionMarks;
-      answerObj.corrected = true;
+      // @ts-ignore
+      answerObj.questionId = question._id;// @ts-ignore
+      answerObj.questionType = question.type;// @ts-ignore
+      answerObj.correctAnswer = correctAnswersArr;// @ts-ignore
+      answerObj.questionMarks = question.questionMarks;// @ts-ignore
+      answerObj.answers = response.answers;// @ts-ignore
+      answerObj.scoredQuestionMarks = scoredQuestionMarks;// @ts-ignore
+      answerObj.corrected = true;// @ts-ignore
 
       studentAnswers.push(answerObj);
     } else {
       //now the question type is shortAnswer or longAnswer
-
-      answerObj.questionId = question._id;
-      answerObj.questionType = question.type;
-      answerObj.questionMarks = question.questionMarks;
-      answerObj.answers = response.answers;
-      answerObj.scoredQuestionMarks = 0;
-      answerObj.corrected = false;
+// @ts-ignore
+      answerObj.questionId = question._id;// @ts-ignore
+      answerObj.questionType = question.type;// @ts-ignore
+      answerObj.questionMarks = question.questionMarks;// @ts-ignore
+      answerObj.answers = response.answers;// @ts-ignore
+      answerObj.scoredQuestionMarks = 0;// @ts-ignore
+      answerObj.corrected = false;// @ts-ignore
 
       studentAnswers.push(answerObj);
     }
   }
-
-  for (i = 0; i < submissions.length; i++) {
+// @ts-ignore
+  for (i = 0; i < submissions.length; i++) {// @ts-ignore
     let response = submissions[i]; //currentQuestionDetails
-    let question = await Question.findById(response.questionId);
+    let question : Question = await QuestionModel.findById(response.questionId);
 
     if (
       question.type == "singleCorrect" ||
@@ -532,7 +539,7 @@ const submitDomain = async (req, res, next) => {
     corrected = true;
   }
 
-  await Domain.updateOne(
+  await DomainModel.updateOne(
     { _id: domainId },
     {
       $pull: { usersStarted: { studentId } },
@@ -549,7 +556,7 @@ const submitDomain = async (req, res, next) => {
     }
   )
     .then(async () => {
-      await Student.updateOne(
+      await StudentModel.updateOne(
         { _id: studentId, "tests.testId": testId },
         {
           $push: { "tests.$.domains": { domainId, status: "Submitted" } },
@@ -589,7 +596,7 @@ const submitDomain = async (req, res, next) => {
 
 // @desc Get all submissions of a domain
 // @route GET /api/test/domain/allSubmissions
-const getAllSubmissionsOfADomain = async (req, res, next) => {
+export const getAllSubmissionsOfADomain = async (req: Request, res: Response, next: NextFunction) => {
   const { domainId } = req.query;
 
   if (!domainId) {
@@ -597,15 +604,15 @@ const getAllSubmissionsOfADomain = async (req, res, next) => {
       message: "1 or more parameter(s) missing from req.query",
     });
   }
-  if (!mongoose.Types.ObjectId.isValid(domainId)) return res.status(401);
+  if (!Types.ObjectId.isValid(domainId as string)) return res.status(401);
 
-  await Domain.findById(domainId)
+  await DomainModel.findById(domainId)
     // .populate(
     //   "clubId testId",
     //   "name email type roundNumber roundType instructions scheduledForDate scheduledEndDate graded"
     // )
     .populate({
-      path: "clubId testId usersFinished shortlisedInDomain",
+      path: "clubId testId usersFinished shortlistedInDomain",
       select:
         "name email type roundNumber roundType instructions scheduledForDate scheduledEndDate graded responses",
       populate: {
@@ -615,7 +622,7 @@ const getAllSubmissionsOfADomain = async (req, res, next) => {
         populate: { path: "questionId", select: "description options" },
       },
     })
-    .then(async (domain) => {
+    .then(async (domain: Domain) => {// @ts-ignore
       if (domain.clubId._id != req.user.userId) {
         return res.status(403).json({
           message: "This is not your club!",
@@ -633,7 +640,7 @@ const getAllSubmissionsOfADomain = async (req, res, next) => {
           domainMarks: domain.domainMarks,
         },
         usersFinished: domain.usersFinished,
-        shortlisedInDomain: domain.shortlisedInDomain,
+        shortlistedInDomain: domain.shortlistedInDomain,
       });
     })
     .catch((err) => {
@@ -722,7 +729,7 @@ const shortlistStudent = async (req, res, next) => {
       if (domain.clubId != req.user.userId) {
         clubFlag = 1;
       }
-      for (student of domain.shortlisedInDomain) {
+      for (student of domain.shortlistedInDomain) {
         if (student.studentId.equals(studentId)) {
           student.remark = remark;
           await domain.save();
@@ -748,7 +755,7 @@ const shortlistStudent = async (req, res, next) => {
       console.log("f");
       await Domain.updateOne(
         { _id: domainId },
-        { $push: { shortlisedInDomain: { studentId, remark } } }
+        { $push: { shortlistedInDomain: { studentId, remark } } }
       )
         .then(async () => {
           res.status(200).json({
@@ -790,7 +797,7 @@ const removeShortlistedStudent = async (req, res, next) => {
   }
   await Domain.updateOne(
     { _id: domainId },
-    { $pull: { shortlisedInDomain: { studentId } } }
+    { $pull: { shortlistedInDomain: { studentId } } }
   )
     .then(async () => {
       res.status(200).json({
@@ -826,7 +833,7 @@ const publishShortlisted = async (req, res, next) => {
     });
   }
   const totalStudents = domain.usersFinished;
-  const shortlistStudents = domain.shortlisedInDomain;
+  const shortlistStudents = domain.shortlistedInDomain;
   const totalStudentsId = [];
   const shortlistedStudentId = [];
   for (let student of totalStudents) {

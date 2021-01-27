@@ -389,7 +389,7 @@ export const attempt = async (req: Request, res: Response, next: NextFunction) =
                 testId,
               })
                 .select(
-                  "-__v -usersStarted -usersFinished -shortlisedInDomain -selectedInDomain"
+                  "-__v -usersStarted -usersFinished -shortlistedInDomain -selectedInDomain"
                 )
                 .then(async (domains) => {
                   res.status(200).json({
