@@ -8,7 +8,7 @@
     // Process & infer types from .js files.
     "allowJs": false,
     // Enable strictNullChecks & noImplicitAny.
-    "strictNullChecks": true,
+    "strictNullChecks": false,
     "noImplicitAny": true,
     "strict": true,
     "strictFunctionTypes": false,
