@@ -446,9 +446,9 @@ export const submitDomain = async (req: Request, res: Response, next: NextFuncti
   for (i = 0; i < submissions.length; i++) {
     answerObj = {};// @ts-ignore
     let response = submissions[i]; //currentQuestionDetails
-    let question: Question = await QuestionModel.findById(response.questionId);
-
-    if (question.type == "singleCorrect") {
+    let question = await QuestionModel.findById(response.questionId);
+// @ts-ignore
+    if (question.type == "singleCorrect") {// @ts-ignore
       let numOptions = question.options.length;
       let correctAnswer;
       let scoredQuestionMarks = 0;
@@ -458,9 +458,9 @@ export const submitDomain = async (req: Request, res: Response, next: NextFuncti
           correctAnswer = question.options[j]._id.toString();
         }
       }
-
-      if (response.answers[0] == correctAnswer) {
-        score += question.questionMarks;
+// @ts-ignore
+      if (response.answers[0] == correctAnswer) {// @ts-ignore
+        score += question.questionMarks;// @ts-ignore
         scoredQuestionMarks = question.questionMarks;
       }
       // @ts-ignore
@@ -472,8 +472,8 @@ export const submitDomain = async (req: Request, res: Response, next: NextFuncti
       answerObj.scoredQuestionMarks = scoredQuestionMarks;// @ts-ignore
       answerObj.corrected = true;
 
-      studentAnswers.push(answerObj);
-    } else if (question.type == "multipleCorrect") {
+      studentAnswers.push(answerObj);// @ts-ignore
+    } else if (question.type == "multipleCorrect") {// @ts-ignore
       let numOptions = question.options.length;
       let correctAnswersArr = [];
       let scoredQuestionMarks = 0;
@@ -495,8 +495,8 @@ export const submitDomain = async (req: Request, res: Response, next: NextFuncti
         correct = false;
       }
 
-      if (correct) {
-        score += question.questionMarks;
+      if (correct) {// @ts-ignore
+        score += question.questionMarks;// @ts-ignore
         scoredQuestionMarks = question.questionMarks;
       }
       // @ts-ignore
@@ -525,10 +525,11 @@ export const submitDomain = async (req: Request, res: Response, next: NextFuncti
 // @ts-ignore
   for (i = 0; i < submissions.length; i++) {// @ts-ignore
     let response = submissions[i]; //currentQuestionDetails
-    let question : Question = await QuestionModel.findById(response.questionId);
+    // @ts-ignore
+    let question = await QuestionModel.findById(response.questionId);
 
-    if (
-      question.type == "singleCorrect" ||
+    if (// @ts-ignore
+      question.type == "singleCorrect" ||// @ts-ignore
       question.type == "multipleCorrect"
     ) {
       autoCorrectCount += 1;
@@ -658,7 +659,7 @@ export const getAllSubmissionsOfADomain = async (req: Request, res: Response, ne
 
 // @desc Get a student's submission of a domain
 // @route GET /api/test/domain/studentSubmission
-const getStudentDomainSubmission = async (req, res, next) => {
+export const getStudentDomainSubmission = async (req: Request, res: Response, next: NextFunction) => {
   const { domainId, studentId } = req.query;
 
   if (!domainId || !studentId) {
@@ -667,8 +668,8 @@ const getStudentDomainSubmission = async (req, res, next) => {
     });
   }
 
-  let submission = [];
-  await Domain.findOne({ _id: domainId })
+  let submission: Array <any> = [];
+  await DomainModel.findOne({ _id: domainId })
     .populate({
       path: "clubId testId usersFinished",
       select:
@@ -679,14 +680,14 @@ const getStudentDomainSubmission = async (req, res, next) => {
         populate: { path: "questionId", select: "description options" },
       },
     })
-    .then(async (domain) => {
+    .then(async (domain: Domain) => {// @ts-ignore
       if (domain.clubId._id != req.user.userId) {
         return res.status(403).json({
           message: "This is not your club!",
         });
-      }
-      for (i in domain.usersFinished) {
-        if (domain.usersFinished[i].studentId._id.equals(studentId)) {
+      }// @ts-ignore
+      for (i in domain.usersFinished) {// @ts-ignore
+        if (domain.usersFinished[i].studentId._id.equals(studentId)) {// @ts-ignore
           submission = domain.usersFinished[i].responses;
         }
       }
@@ -719,18 +720,18 @@ const getStudentDomainSubmission = async (req, res, next) => {
 
 // @desc Shortlist students in a domain
 // @route PATCH /api/test/domain/shortlist
-const shortlistStudent = async (req, res, next) => {
+export const shortlistStudent = async (req: Request, res: Response, next: NextFunction) => {
   const { domainId, studentId, remark } = req.body;
   let flag = 0;
   let clubFlag = 0;
 
-  await Domain.findById(domainId)
-    .then(async (domain) => {
+  await DomainModel.findById(domainId)
+    .then(async (domain: Domain) => {// @ts-ignore
       if (domain.clubId != req.user.userId) {
         clubFlag = 1;
-      }
-      for (student of domain.shortlistedInDomain) {
-        if (student.studentId.equals(studentId)) {
+      }// @ts-ignore
+      for (student of domain.shortlistedInDomain) {// @ts-ignore
+        if (student.studentId.equals(studentId)) {// @ts-ignore
           student.remark = remark;
           await domain.save();
           flag = 1;
@@ -753,8 +754,8 @@ const shortlistStudent = async (req, res, next) => {
   if (clubFlag == 0) {
     if (flag == 0) {
       console.log("f");
-      await Domain.updateOne(
-        { _id: domainId },
+      await DomainModel.updateOne(
+        { _id: domainId },// @ts-ignore
         { $push: { shortlistedInDomain: { studentId, remark } } }
       )
         .then(async () => {
@@ -787,15 +788,15 @@ const shortlistStudent = async (req, res, next) => {
 
 // @desc Delete a shortlisted student
 // @route PATCH /api/test/domain/shortlist/removeStudent
-const removeShortlistedStudent = async (req, res, next) => {
+export const removeShortlistedStudent = async (req: Request, res: Response, next: NextFunction) => {
   const { domainId, studentId } = req.body;
-  const domain = await Domain.findById(domainId);
+  const domain = await DomainModel.findById(domainId);// @ts-ignore
   if (domain.clubId != req.user.userId) {
     return res.status(403).json({
       message: "This is not your club!",
     });
   }
-  await Domain.updateOne(
+  await DomainModel.updateOne(
     { _id: domainId },
     { $pull: { shortlistedInDomain: { studentId } } }
   )
@@ -818,9 +819,9 @@ const removeShortlistedStudent = async (req, res, next) => {
 };
 // @desc Publish shortlisted results
 // @route GET /api/test/domain/shortlist/publish
-const publishShortlisted = async (req, res, next) => {
+export const publishShortlisted = async (req: Request, res: Response, next: NextFunction) => {
   const { domainId, testId } = req.body;
-  const domain = await Domain.findById(domainId);
+  const domain  = await DomainModel.findById(domainId);// @ts-ignore
   if (domain.clubId != req.user.userId) {
     return res.status(402).json({
       message: "This is not your club!",
@@ -829,33 +830,34 @@ const publishShortlisted = async (req, res, next) => {
   if (!domain) {
     res.status(500).json({
       message: "Something went wrong",
-      error: err.toString(),
+      error: Error.toString(),
     });
-  }
-  const totalStudents = domain.usersFinished;
-  const shortlistStudents = domain.shortlistedInDomain;
-  const totalStudentsId = [];
-  const shortlistedStudentId = [];
-  for (let student of totalStudents) {
+  }// @ts-ignore
+  const totalStudents = domain.usersFinished;// @ts-ignore
+  const shortlistStudents = domain.shortlistedInDomain;// @ts-ignore
+  const totalStudentsId : Array <any> = [];
+  const shortlistedStudentId : Array <any> = []; // @ts-ignore
+  for (let student of totalStudents) {// @ts-ignore
     totalStudentsId = [...totalStudentsId, student.studentId];
-  }
-  for (let student of shortlistStudents) {
+  }// @ts-ignore
+  for (let student of shortlistStudents) {// @ts-ignore
     shortlistedStudentId = [...shortlistedStudentId, student.studentId];
   }
   const notShortlistedStudentsId = totalStudentsId.filter(
     (n) => !shortlistedStudentId.includes(n)
   );
   ///////////////////////////////////////////////////////SEND EMAILS///////////////////////////////////////
+  // @ts-ignore
   for (let studentId of shortlistedStudentId) {
-    await Student.updateOne(
+    await StudentModel.updateOne(
       { _id: studentId, "tests.testId": testId },
       {
         $push: { "tests.$.domains": { domainId, status: "Shortlisted" } },
       }
     );
-  }
+  }// @ts-ignore
   for (let studentId of notShortlistedStudentsId) {
-    await Student.updateOne(
+    await StudentModel.updateOne(
       { _id: studentId, "tests.testId": testId },
       {
         $push: { "tests.$.domains": { domainId, status: "Not Shortlisted" } },
@@ -870,7 +872,7 @@ const publishShortlisted = async (req, res, next) => {
 
 // @desc Update domain details
 // @route PATCH /api/test/domain/details
-const updateDomainDetails = async (req, res, next) => {
+export const updateDomainDetails = async (req: Request, res: Response, next: NextFunction) => {
   const {
     testId,
     domainId,
@@ -879,21 +881,21 @@ const updateDomainDetails = async (req, res, next) => {
     domainInstructions,
     domainDuration,
   } = req.body;
-  const domain = await Domain.findById(domainId);
-
+  const domain  = await DomainModel.findById(domainId);
+// @ts-ignore
   if (domain.clubId != req.user.userId) {
     return res.status(403).json({
       message: "This is not your club!",
     });
   }
-  await Test.findById(testId)
-    .then(async (test) => {
+  await TestModel.findById(testId)
+    .then(async (test: Test) => {
       // if (test.scheduledForDate <= Date.now()) {
       //   return res.status(409).json({
       //     message: "You can't update the domain since it has already started",
       //   });
       // } else {
-      await Domain.updateOne(
+      await DomainModel.updateOne(
         { _id: domainId },
         {
           $set: {
@@ -939,18 +941,18 @@ const updateDomainDetails = async (req, res, next) => {
 
 // @desc Delete a domain
 // @route DELETE /api/test/domain/delete
-const deleteDomain = async (req, res, next) => {
+export const deleteDomain = async (req: Request, res: Response, next: NextFunction) => {
   const { testId, domainId } = req.body;
-  const domain = await Domain.findById(domainId);
-
+  const domain = await DomainModel.findById(domainId);
+// @ts-ignore
   if (domain.clubId != req.user.userId) {
     return res.status(403).json({
       message: "This is not your club!",
     });
   } else {
-    await Question.deleteMany({ domainId })
+    await QuestionModel.deleteMany({ domainId })
       .then(async () => {
-        await Student.updateOne(
+        await StudentModel.updateOne(
           // {},
           // {
           //   $pull: { "tests.$[].domains": { domainId } },
@@ -960,7 +962,7 @@ const deleteDomain = async (req, res, next) => {
           { multi: true }
         )
           .then(async () => {
-            await Domain.deleteOne({ _id: domainId })
+            await DomainModel.deleteOne({ _id: domainId })
               .then(async () => {
                 res.status(200).json({
                   message: "Domain deleted successfully",
