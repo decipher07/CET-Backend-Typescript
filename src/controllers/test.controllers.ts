@@ -640,7 +640,7 @@ export const addStudents = async (req: Request, res: Response, next: NextFunctio
         let object = {
           studentId: student.id,
           marks: 0,
-          corrected: false,
+          corrected: false, // @ts-ignore
           responses: [],
         };// @ts-ignore
         studentsIdArray = [...studentsIdArray, object];

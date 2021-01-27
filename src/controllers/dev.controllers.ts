@@ -283,7 +283,7 @@ export const sendShortlistEmail = async (req: Request, res: Response) => {
       Source: "contact@codechefvit.com",
       Destination: {// @ts-ignore
         ToAddresses: [email],
-      },
+      },// @ts-ignore
       ReplyToAddresses: [],
       Message: {
         Body: {
@@ -328,7 +328,7 @@ export const sendWelcomeEmail = async (req: Request, res: Response) => {
     Source: "contact@codechefvit.com",
     Destination: {
       ToAddresses: emailArray,
-    },
+    },// @ts-ignore
     ReplyToAddresses: [],
     Message: {
       Body: {
@@ -377,7 +377,7 @@ export const whitelistEmails = async (req: Request, res: Response) => {
                 Source: "contact@codechefvit.com",
                 Destination: {// @ts-ignore
                   ToAddresses: [club.email],
-                },
+                },// @ts-ignore
                 ReplyToAddresses: [],
                 Message: {
                   Body: {
