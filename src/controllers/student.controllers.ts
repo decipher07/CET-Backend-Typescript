@@ -182,7 +182,7 @@ export const resendOTP = async (req: Request, res: Response) => {
 
       await student
         .save()
-        .then(async () => {
+        .then(async () => {// @ts-ignore
           const emailSent = sendSesOtp(email, student.emailVerificationCode);
           // let transporter = nodemailer.createTransport({
           //   service: "gmail",
@@ -439,7 +439,7 @@ export const sendForgotPasswordEmail = async (req: Request, res: Response) => {
         .save()
         .then(async () => {
           const emailSent = sendSesForgotPassword(
-            email,
+            email,// @ts-ignore
             student.forgotPasswordCode
           );
           // let transporter = nodemailer.createTransport({
