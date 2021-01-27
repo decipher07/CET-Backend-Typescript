@@ -35,6 +35,8 @@ export default interface Student extends Document {
   loginCount?: number;
   forgotPasswordCode?: number;
   forgotPasswordCodeExpires?: number;
+  emailVerificationCode?: number;
+  emailVerificationCodeExpires?: number;
   tests?: Array<testInter>;
 }
 
