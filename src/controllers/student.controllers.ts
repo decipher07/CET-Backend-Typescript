@@ -424,8 +424,8 @@ export const sendForgotPasswordEmail = async (req: Request, res: Response) => {
     });
   }
 
-  await Student.findOne({ email })
-    .then(async (student) => {
+  await StudentModel.findOne({ email })
+    .then(async (student: Student) => {
       if (!student) {
         return res.status(404).json({
           message: "Invalid Email",
@@ -528,7 +528,7 @@ export const sendForgotPasswordEmail = async (req: Request, res: Response) => {
 
 // @desc Forgot password - Verify OTP
 // @route POST /api/student/forgotPassword/verifyOTP
-const resetPassword = async (req, res) => {
+export const resetPassword = async (req: Request, res: Response) => {
   const { email, forgotPasswordCode, newPassword } = req.body;
 
   if (!email || !forgotPasswordCode || !newPassword) {
@@ -539,15 +539,14 @@ const resetPassword = async (req, res) => {
 
   const now = Date.now();
 
-  await Student.findOne({ email })
-    .then(async (student) => {
+  await StudentModel.findOne({ email })
+    .then(async (student: Student) => {
       if (student) {
-        if (student.forgotPasswordCode == forgotPasswordCode) {
+        if (student.forgotPasswordCode == forgotPasswordCode) {// @ts-ignore
           if (student.forgotPasswordCodeExpires > now) {
-            await bcrypt
-              .hash(newPassword, 10)
+            await hash(newPassword, 10)
               .then(async (hash) => {
-                await Student.updateOne(
+                await StudentModel.updateOne(
                   { _id: student._id },
                   { password: hash }
                 )
@@ -607,11 +606,11 @@ const resetPassword = async (req, res) => {
 
 // @desc Update student's profile
 // @route PATCH /api/student/profile
-const updateProfile = async (req, res, next) => {
-  const { name, registrationNumber, bio, branch, mobileNumber } = req.body;
+export const updateProfile = async (req: Request, res: Response , next: NextFunction ) => {
+  const { name, registrationNumber, bio, branch, mobileNumber } = req.body;// @ts-ignore
   const studentId = req.user.userId;
 
-  await Student.updateOne(
+  await StudentModel.updateOne(
     { _id: studentId },
     { $set: { name, registrationNumber, bio, branch, mobileNumber } }
   )
@@ -634,12 +633,12 @@ const updateProfile = async (req, res, next) => {
 
 // @desc Get student's profile
 // @route GET /api/student/profile
-const getProfile = async (req, res, next) => {
+export const getProfile = async (req: Request, res: Response, next: NextFunction) => {// @ts-ignore
   const studentId = req.user.userId;
 
-  await Student.findById(studentId)
+  await StudentModel.findById(studentId)
     .select("name email mobileNumber registrationNumber bio branch")
-    .then(async (student) => {
+    .then(async (student: Student) => {
       res.status(200).json({
         student,
       });
@@ -658,7 +657,7 @@ const getProfile = async (req, res, next) => {
 
 // @desc Get student's profile details --for everyone
 // @route GET /api/student/details
-const getStudentDetails = async (req, res, next) => {
+export const getStudentDetails = async (req: Request, res: Response, next: NextFunction ) => {
   const { studentId } = req.query;
 
   if (!studentId) {
@@ -667,9 +666,9 @@ const getStudentDetails = async (req, res, next) => {
     });
   }
 
-  await Student.findById(studentId)
+  await StudentModel.findById(studentId)
     .select("name email mobileNumber registrationNumber bio branch")
-    .then(async (student) => {
+    .then(async (student: Student) => {
       res.status(200).json({
         student,
       });
@@ -688,10 +687,10 @@ const getStudentDetails = async (req, res, next) => {
 
 // @desc Get student's dashboard
 // @route GET /api/student/dashboard
-const dashboard = async (req, res, next) => {
+export const dashboard = async (req: Request, res: Response, next: NextFunction) => {// @ts-ignore
   const studentId = req.user.userId;
 
-  await Student.findById(studentId)
+  await StudentModel.findById(studentId)
     .select(
       "-password -isEmailVerified -isMobileVerified -emailVerificationCode -emailVerificationCodeExpires -__v"
     )
@@ -708,7 +707,7 @@ const dashboard = async (req, res, next) => {
         },
       },
     })
-    .then(async (student) => {
+    .then(async (student: Student) => {
       res.status(200).json({
         studentDetails: {
           _id: student._id,
@@ -734,14 +733,14 @@ const dashboard = async (req, res, next) => {
     });
 };
 
-const sendSesOtp = (mailto, code) => {
+export const sendSesOtp = (mailto: string, code: number) => {
   const SES_CONFIG = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: "ap-south-1",
   };
 
-  const AWS_SES = new AWS.SES(SES_CONFIG);
+  const AWS_SES = new SES(SES_CONFIG);
   let params = {
     Source: "contact@codechefvit.com",
     Destination: {
@@ -751,7 +750,7 @@ const sendSesOtp = (mailto, code) => {
     Message: {
       Body: {
         Html: {
-          Charset: "UTF-8",
+          Charset: "UTF-8",// @ts-ignore
           Data: sendVerificationOTP(code),
         },
       },
@@ -772,14 +771,14 @@ const sendSesOtp = (mailto, code) => {
     });
 };
 
-const sendSesForgotPassword = (mailto, code) => {
+const sendSesForgotPassword = (mailto: string, code: number) => {
   const SES_CONFIG = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: "ap-south-1",
   };
 
-  const AWS_SES = new AWS.SES(SES_CONFIG);
+  const AWS_SES = new SES(SES_CONFIG);
   let params = {
     Source: "contact@codechefvit.com",
     Destination: {
@@ -789,7 +788,7 @@ const sendSesForgotPassword = (mailto, code) => {
     Message: {
       Body: {
         Html: {
-          Charset: "UTF-8",
+          Charset: "UTF-8",// @ts-ignore
           Data: sendForgotPasswordMail(code),
         },
       },
