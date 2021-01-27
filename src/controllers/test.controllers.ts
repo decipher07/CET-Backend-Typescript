@@ -4,6 +4,7 @@ import { sign, verify } from 'jsonwebtoken'
 import { Types } from 'mongoose'
 import { SES } from 'aws-sdk'
 import Club, { ClubModel } from '../database/model/club.model'
+import Question, { QuestionModel } from '../database/model/question.model'
 import Student, { StudentModel } from '../database/model/student.model'
 import StudentForm ,{StudentFormModel} from '../database/model/student.form.model'
 import Test, { TestModel } from '../database/model/test.model'
@@ -464,8 +465,8 @@ export const attempt = async (req: Request, res: Response, next: NextFunction) =
 
 // @desc Submit a test
 // @route POST /api/test/submit
-const submit = async (req, res, next) => {
-  const { testId } = req.body;
+export const submit = async (req: Request, res: Response, next: NextFunction) => {
+  const { testId } = req.body;// @ts-ignore
   const studentId = req.user.userId;
   const now = Date.now();
 
@@ -475,7 +476,7 @@ const submit = async (req, res, next) => {
     });
   }
 
-  await Test.updateOne(
+  await TestModel.updateOne(
     {
       _id: testId,
     },
@@ -485,7 +486,7 @@ const submit = async (req, res, next) => {
           studentId,
         },
       },
-      $push: {
+      $push: {// @ts-ignore
         usersFinished: {
           studentId,
           submittedOn: now,
@@ -494,7 +495,7 @@ const submit = async (req, res, next) => {
     }
   )
     .then(async () => {
-      await Student.updateOne(
+      await StudentModel.updateOne(
         {
           _id: studentId,
           "tests.testId": testId,
@@ -539,18 +540,18 @@ const submit = async (req, res, next) => {
 // @desc Get all applied tests
 // @route GET /api/test/allApplied
 // Not tested
-const allApplied = async (req, res, next) => {
+export const allApplied = async (req: Request, res: Response , next: NextFunction) => {// @ts-ignore
   const studentId = req.user.userId;
 
-  await Student.findById(studentId)
-    .then(async (student) => {
-      for (i in student.tests) {
-        if (!student.tests[i].startedOn) {
+  await StudentModel.findById(studentId)
+    .then(async (student: Student) => {// @ts-ignore
+      for (i in student.tests) { // @ts-ignore
+        if (!student.tests[i].startedOn) { // @ts-ignore
           testsArr.push(student.tests[i]);
         }
       }
 
-      res.status(200).json({
+      res.status(200).json({ // @ts-ignore
         tests: testsArr,
       });
     })
@@ -570,18 +571,19 @@ const allApplied = async (req, res, next) => {
 // @desc Get all submitted tests
 // @route GET /api/test/allSubmitted
 // Not tested
-const allSubmitted = async (req, res, next) => {
+export const allSubmitted = async (req: Request, res: Response, next: NextFunction) => {
+  // @ts-ignore
   const studentId = req.user.userId;
 
-  await Student.findById(studentId)
-    .then(async (student) => {
-      for (i in student.tests) {
-        if (student.tests[i].startedOn && !student.tests[i].submittedOn) {
+  await StudentModel.findById(studentId)
+    .then(async (student: Student) => { // @ts-ignore
+      for (i in student.tests) {// @ts-ignore
+        if (student.tests[i].startedOn && !student.tests[i].submittedOn) {// @ts-ignore
           testsArr.push(student.tests[i]);
         }
       }
 
-      res.status(200).json({
+      res.status(200).json({// @ts-ignore
         tests: testsArr,
       });
     })
@@ -600,7 +602,7 @@ const allSubmitted = async (req, res, next) => {
 
 // @desc Add students to a test and its subsequent domains
 // @route POST /api/test/addStudents
-const addStudents = async (req, res, next) => {
+export const addStudents = async (req: Request, res: Response, next: NextFunction) => {
   const { studentsArray, testId, clubId } = req.body;
 
   if (!studentsArray || !testId || !clubId) {
@@ -608,18 +610,18 @@ const addStudents = async (req, res, next) => {
       message: "1 or more parameter(s) missing from req.body",
     });
   }
-  const test = await Test.findById(testId);
-
+  const test = await TestModel.findById(testId);
+  // @ts-ignore
   if (test.clubId != req.user.userId) {
     return res.status(403).json({
       message: "This is not your club!",
     });
   } else {
-    let studentsIdArray = [];
+    let studentsIdArray: Array <Student> = [];
     const appliedOn = Date.now();
 
     for (let studentEmail of studentsArray) {
-      let student = await Student.findOneAndUpdate(
+      let student = await StudentModel.findOneAndUpdate(
         {
           email: studentEmail,
         },
@@ -640,12 +642,12 @@ const addStudents = async (req, res, next) => {
           marks: 0,
           corrected: false,
           responses: [],
-        };
+        };// @ts-ignore
         studentsIdArray = [...studentsIdArray, object];
       }
     }
-    await Test.findOneAndUpdate(
-      { _id: testId },
+    await TestModel.findOneAndUpdate(
+      { _id: testId },// @ts-ignore
       { $addToSet: { users: studentsIdArray } }
     )
       .then((result) => {
@@ -667,9 +669,13 @@ const addStudents = async (req, res, next) => {
   }
 };
 
+// Laptop
+// Sleeping
+// Summers
+
 // @desc Publish a test
 // @route PATCH /api/test/publish
-const publish = async (req, res, next) => {
+export const publish = async (req: Request, res: Response, next: NextFunction) => {
   const { testId } = req.body;
 
   if (!testId) {
@@ -677,16 +683,16 @@ const publish = async (req, res, next) => {
       message: "1 or more parameter(s) missing from req.query",
     });
   }
-  const test = await Test.findById(testId);
-
+  const test = await TestModel.findById(testId);
+  // @ts-ignore
   if (test.clubId != req.user.userId) {
     return res.status(403).json({
       message: "This is not your club!",
     });
   }
-  await Test.findOneAndUpdate({ _id: testId }, { published: true })
-    .then(async (test) => {
-      await Club.updateOne(
+  await TestModel.findOneAndUpdate({ _id: testId }, { published: true })
+    .then(async (test: Test) => {
+      await ClubModel.updateOne(
         { _id: test.clubId },
         { $inc: { numOfTestsPublished: 1 } }
       )
@@ -724,13 +730,14 @@ const publish = async (req, res, next) => {
 
 // @desc Get all tests of a club -- admin only
 // @route GET /api/test/allTestsOfAClub
-const getAllTestOfAClub = async (req, res, next) => {
+export const getAllTestOfAClub = async (req: Request, res: Response, next: NextFunction) => {
   // const { clubId } = req.query;
+  // @ts-ignore
   const clubId = req.user.userId;
 
-  await Test.find({ clubId })
+  await TestModel.find({ clubId })
     .select("-usersFinished -usersStarted -users")
-    .then(async (tests) => {
+    .then(async (tests: Array<Test>) => {
       // if (tests[0].clubId != req.user.userId) {
       //   return res.status(403).json({
       //     message: "This is not your club!",
@@ -756,7 +763,7 @@ const getAllTestOfAClub = async (req, res, next) => {
 
 // @desc Get all published tests of a club
 // @route PATCH /api/test/allPublishedTestsOfAClub
-const getAllPublishedTestsOfAClub = async (req, res, next) => {
+export const getAllPublishedTestsOfAClub = async (req: Request, res: Response, next: NextFunction) => {
   const { clubId } = req.query;
 
   if (!clubId) {
@@ -764,11 +771,11 @@ const getAllPublishedTestsOfAClub = async (req, res, next) => {
       message: "1 or more parameter(s) missing from req.query",
     });
   }
-
-  await Test.find({ clubId, published: true })
-    .then(async (tests) => {
-      for (let i = 0; i < tests.length; i++) {
-        if (Date.now() >= tests[i].scheduledEndDate) {
+// @ts-ignore
+  await TestModel.find({ clubId, published: true })// @ts-ignore
+    .then(async (tests: Test) => {// @ts-ignore
+      for (let i = 0; i < tests.length; i++) {// @ts-ignore
+        if (Date.now() >= tests[i].scheduledEndDate) {// @ts-ignore
           tests.splice(i, 1);
         }
       }
@@ -792,7 +799,7 @@ const getAllPublishedTestsOfAClub = async (req, res, next) => {
 
 // @desc Update test details
 // @route PATCH /api/test/details
-const updateTest = async (req, res, next) => {
+export const updateTest = async (req: Request, res: Response, next: NextFunction) => {
   const {
     testId,
     roundNumber,
@@ -803,19 +810,19 @@ const updateTest = async (req, res, next) => {
     graded,
   } = req.body;
 
-  await Test.findById(testId)
-    .then(async (test) => {
+  await TestModel.findById(testId)
+    .then(async (test: Test) => {// @ts-ignore
       if (test.clubId != req.user.userId) {
         return res.status(403).json({
           message: "This is not your club!",
         });
-      }
+      }// @ts-ignore
       if (test.scheduledForDate <= Date.now()) {
         return res.status(409).json({
           message: "You can't update the test since it has already started",
         });
       } else {
-        await Test.updateOne(
+        await TestModel.updateOne(
           { _id: testId },
           {
             $set: {
@@ -863,26 +870,26 @@ const updateTest = async (req, res, next) => {
 
 // @desc Delete a test
 // @route DELETE /api/test/delete
-const deleteTest = async (req, res, next) => {
+export const deleteTest = async (req: Request, res: Response, next: NextFunction) => {
   const { testId } = req.body;
-  const test = await Test.findById(testId);
-
+  const test = await TestModel.findById(testId);
+// @ts-ignore
   if (test.clubId != req.user.userId) {
     return res.status(403).json({
       message: "This is not your club!",
     });
   }
-  await Question.deleteMany({ testId })
+  await QuestionModel.deleteMany({ testId })
     .then(async () => {
-      await Domain.deleteMany({ testId })
+      await DomainModel.deleteMany({ testId })
         .then(async () => {
-          await Student.updateMany(
+          await StudentModel.updateMany(
             {},
             { $pull: { tests: { testId } } },
             { multi: true }
           )
             .then(async () => {
-              await Test.deleteOne({ _id: testId })
+              await TestModel.deleteOne({ _id: testId })
                 .then(async () => {
                   res.status(200).json({
                     message: "Test deleted successfully",
