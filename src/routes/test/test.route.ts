@@ -55,7 +55,8 @@ router.patch("/details", checkAuthClub, updateTest);
 //Delete a test
 router.delete("/delete", checkAuthClub, deleteTest);
 
-router.use("/domain", require('../testdomain/testdomain.route'));
+import testdoman from '../testdomain/testdomain.route'
+router.use("/domain", testdoman);
 
 
 export default router;

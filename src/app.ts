@@ -16,6 +16,7 @@ require("dotenv").config();
 
 
 process.on('uncaughtException', (e) => {
+  console.log(e);
   Logger.error(e);
 });
 
@@ -26,7 +27,24 @@ app.use(bodyParser.urlencoded({ limit: '10mb', extended: true, parameterLimit: 5
 app.use(cors({ origin: '*', optionsSuccessStatus: 200 }));
 
 // Routes
+import club from './routes/club/club.route'
+import student from './routes/student/student.route'
+import studentform from './routes/studentform/student.form.route'
+import easterEggFrom from './routes/eastereggform/easterEggForm.route'
+import auth from './routes/auth/auth.route'
+import test from './routes/test/test.route'
 
+app.use("/api/club", club);
+app.use("/api/student", student);
+app.use("/api/test", test);
+app.use("/api/studentForm", studentform);
+app.use("/api/easterEgg", easterEggFrom);
+app.use("/api/auth", auth);
+app.get("/checkServer", (req, res) => {
+  return res.status(200).json({
+    message: "Server is up and running",
+  });
+});
 
 
 
@@ -84,8 +102,10 @@ if (process.env.NODE_ENV == "production") {
   });
 }
 
+import devroutes from './routes/dev/dev.route'
+
 if (process.env.NODE_ENV == "development") {
-  app.use("/dev", require("./api/routes/dev.routes"));
+  app.use("/dev", devroutes);
 }
 
 
@@ -96,6 +116,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     ApiError.handle(err, res);
   } else {
     if (environment === 'development') {
+      console.log(err)
       Logger.error(err);
       return res.status(500).send(err.message);
     }

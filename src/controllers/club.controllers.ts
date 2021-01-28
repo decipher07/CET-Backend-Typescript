@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from 'express'
 import { Types } from 'mongoose'
 import { sign } from 'jsonwebtoken'
 import { hash, compare } from 'bcrypt'
-import * as sgMail from '@sendgrid/mail'
 import { createTransport } from 'nodemailer'
 import { SES } from 'aws-sdk'
 import Club, { ClubModel } from '../database/model/club.model'// @ts-ignore
@@ -13,7 +12,7 @@ import { UserRequest } from '../types/app-request'
 require('dotenv').config()
 
 // @ts-ignore
-sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+// sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 
 // @desc Create Clubs for DEVS

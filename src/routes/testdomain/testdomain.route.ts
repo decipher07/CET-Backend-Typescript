@@ -69,7 +69,8 @@ router.patch(
 //Delete a domain
 router.delete("/delete", checkAuthClub, deleteDomain);
 
-router.use("/question", require('../questions/questions.route'));
+import questions from '../questions/questions.route'
+router.use("/question", questions);
 
 
 export default router

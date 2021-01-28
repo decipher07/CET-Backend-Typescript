@@ -1,6 +1,6 @@
 import express, { Router } from 'express'
 import { authenticate } from 'passport'
-import * as cookieParser from 'cookie-parser'
+const cookieParser = require("cookie-parser");
 
 const router: Router = express.Router()
 
