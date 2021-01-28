@@ -576,7 +576,7 @@ export const getClubDetails = async (req: Request, res: Response, next: NextFunc
 
 // @desc Get club's details via username
 // @route GET /api/club/details/username
-const getClubDetailsUsername = async (req: Request, res: Response, next: NextFunction) => {
+export const getClubDetailsUsername = async (req: Request, res: Response, next: NextFunction) => {
   const { username } = req.query;
 
   if (!username) {
