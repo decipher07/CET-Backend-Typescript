@@ -1,7 +1,7 @@
 <p align="center"><a href="https://www.codechefvit.com" target="_blank"><img src="https://s3.amazonaws.com/codechef_shared/sites/all/themes/abessive/logo-3.png" title="CodeChef-VIT" alt="Codechef-VIT"></a>
 </p>
 
-# Common Entry Test : Backend
+# Common Entry Test : Typescript Backend
 
 > <Subtitle>
 > One stop solution to make club and chapter recruitments in VIT simpler and hassle free.
@@ -39,14 +39,14 @@ Common Entry Test is an assistive technology that helps make applying to clubs a
 
 ## Instructions to Run 🛠️
 ```bash
-$ git clone https://github.com/CodeChefVIT/cetBackend
-$ cd cetBackend
+$ git clone https://github.com/CodeChefVIT/CET-Backend-Typescript
+$ cd CET-Backend-Typescript
 $ npm install
 ```
 - Add environmental variables in the `.env` file.
 ```bash
 $ npx secure-env .env -s enimasinobhaniyo
-$ npm run dev
+$ npm start
 ```
 
 ## Environment Variables
