@@ -3,12 +3,12 @@ import { Types } from 'mongoose'
 import Test, { TestModel } from '../database/model/test.model'
 import Question, { QuestionModel } from '../database/model/question.model'
 import Domain, {DomainModel} from '../database/model/testDomain.model'
-// @ts-ignore
-import {errorLogger} from '../utils/logger'
+import { UserRequest } from '../types/app-request'
+let {errorLogger} = require ('../utils/logger')
 
 // @desc Add a question to a test
 // @route GET /api/question/add
-export const addQuestion = async (req: Request, res: Response, next: NextFunction) => {
+export const addQuestion = async (req: UserRequest, res: Response, next: NextFunction) => {
   let {
     testId,
     domainId,
@@ -16,11 +16,11 @@ export const addQuestion = async (req: Request, res: Response, next: NextFunctio
     questionMarks,
     description,
     options,
-  } = req.body;
+  } : any = req.body;
 
-  let domain : Domain ; // @ts-ignore
-  domain = await DomainModel.findById(domainId);// @ts-ignore
-  if (domain.clubId != req.user.userId) {
+  let domain : any; 
+  domain = await DomainModel.findById(domainId);
+  if (domain.clubId.toString() != req.user.userId) {
     return res.status(403).json({
       message: "This is not your club!",
     });
@@ -30,7 +30,7 @@ export const addQuestion = async (req: Request, res: Response, next: NextFunctio
   }
   if (!questionMarks) {
     questionMarks = 0;
-  }// @ts-ignore
+  }
   const clubId = req.user.userId;
 
   console.log(req.body, req.file);
@@ -114,7 +114,7 @@ export const addQuestion = async (req: Request, res: Response, next: NextFunctio
 
 // @desc Add multiple questions to a test
 // @route GET /api/question/addMultiple
-export const addMultipleQuestions = async (req: Request, res: Response, next: NextFunction) => {
+export const addMultipleQuestions = async (req: UserRequest, res: Response, next: NextFunction) => {
   const { testId, domainId, questions } = req.body;
 
   if (!testId || !domainId) {
@@ -122,9 +122,8 @@ export const addMultipleQuestions = async (req: Request, res: Response, next: Ne
       message: "1 or more parameter(s) missing from req.query",
     });
   }
-  // @ts-ignore
-  const domain : Domain = await DomainModel.findById(domainId);
-  // @ts-ignore
+  const domain : any = await DomainModel.findById(domainId);
+  
   if (domain.clubId != req.user.userId) {
     return res.status(403).json({
       message: "This is not your club!",
@@ -136,8 +135,8 @@ export const addMultipleQuestions = async (req: Request, res: Response, next: Ne
     .then(async (result: Question) => {
       await QuestionModel.find({ testId, domainId })
         .then(async (ques: Array<Question> ) => {
-          let marks = 0;// @ts-ignore
-          for (question of ques) {// @ts-ignore
+          let marks = 0;
+          for (let question of ques) {
             marks += question.questionMarks;
           }
           await DomainModel.updateOne({ _id: domainId }, { domainMarks: marks })
@@ -186,7 +185,7 @@ export const addMultipleQuestions = async (req: Request, res: Response, next: Ne
 
 // @desc Get all questions of a domain of a test -- accessible only to club
 // @route GET /api/question/all
-export const getAllQuestions = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllQuestions = async (req: UserRequest, res: Response, next: NextFunction) => {
   const { testId, domainId } = req.query;
 
   if (!testId) {
@@ -199,7 +198,7 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
       "clubId testId",
       "name email type roundNumber roundType instructions scheduledForDate scheduledEndDate graded"
     )
-    .then(async (domain: Domain) => {// @ts-ignore
+    .then(async (domain: any) => {
       if (domain.clubId._id != req.user.userId) {
         return res.status(403).json({
           message: "This is not your club!",
@@ -248,17 +247,17 @@ export const getAllQuestions = async (req: Request, res: Response, next: NextFun
 
 // @desc Add marks for a question for a student
 // @route POST /api/test/domain/question/marks
-export const updateMarks = async (req: Request, res: Response, next: NextFunction) => {
+export const updateMarks = async (req: UserRequest, res: Response, next: NextFunction) => {
   const { studentId, questionId, marks, domainId } = req.body;
 
-  let domain = await DomainModel.findOne({ _id: domainId });
+  let domain : any= await DomainModel.findOne({ _id: domainId });
 
   if (!domain) {
     return res.status(418).json({
       message: "Invalid parameters",
     });
   }
-// @ts-ignore
+
   if (domain.clubId != req.user.userId) {
     return res.status(403).json({
       message: "This is not your club!",
@@ -298,16 +297,16 @@ export const updateMarks = async (req: Request, res: Response, next: NextFunctio
 
 // @desc Delete a question
 // @route DELETE /api/test/domain/question/delete
-export const deleteQuestion = async (req: Request, res: Response, next: NextFunction) => {
-  const { questionId, testId } = req.body;
+export const deleteQuestion = async (req: UserRequest, res: Response, next: NextFunction) => {
+  const { questionId, testId } : any = req.body;
 
   await TestModel.findById(testId)
-    .then(async (test: Test) => {// @ts-ignore
-      if (test.clubId != req.user.userId) {
+    .then(async (test: Test) => {
+      if (test.clubId.toHexString() != req.user.userId) {
         return res.status(403).json({
           message: "This is not your club!",
         });
-      } else {// @ts-ignore
+      } else {
         if (test.scheduledForDate <= Date.now()) {
           return res.status(409).json({
             message:

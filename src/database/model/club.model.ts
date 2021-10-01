@@ -22,8 +22,8 @@ export default interface Club extends Document {
   clubImages?: any,
   socialMediaLinks?: any,
   numOfTestsPublished?: number,
-  emailVerificationCode?: number,
-  emailVerificationCodeExpires?: number,
+  emailVerificationCode: number,
+  emailVerificationCodeExpires: number,
   isMobileVerified?: boolean,
   isEmailVerified?: boolean
 }

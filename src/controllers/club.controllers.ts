@@ -4,15 +4,27 @@ import { sign } from 'jsonwebtoken'
 import { hash, compare } from 'bcrypt'
 import { createTransport } from 'nodemailer'
 import { SES } from 'aws-sdk'
-import Club, { ClubModel } from '../database/model/club.model'// @ts-ignore
-import  { sendVerificationOTP, sendWelcomeMail }  from '../utils/emailTemplates'
+import Club, { ClubModel } from '../database/model/club.model'
 import {errorLogger} from '../utils/logger'
 import { UserRequest } from '../types/app-request'
-
 require('dotenv').config()
+
+// esModuleInterops value set to True
+let  { sendVerificationOTP, sendWelcomeMail }  = require ('../utils/emailTemplates')
 
 // @ts-ignore
 // sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+declare var process : {
+  env: {
+    JWT_SECRET: string,
+    NODE_ENV: string,
+    NODEMAILER_EMAIL: string,
+    NODEMAILER_PASSWORD: string,
+    AWS_ACCESS_KEY_ID: string,
+    AWS_SECRET_ACCESS_KEY: string
+  }
+}
+
 
 
 // @desc Create Clubs for DEVS
@@ -128,8 +140,7 @@ export const signup = async (req: Request, res: Response) => {
   }
 
   await ClubModel.find({ email })
-    .then( async (clubs: any) => {
-      // @ts-ignore
+    .then( async (clubs: [Club]) => {
       if (clubs.length < 1) {
         return res.status(401).json({
           message: "Auth failed!",
@@ -287,7 +298,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
   })
     .then(async (club: Club) => {
       if (club) {
-        if (club.emailVerificationCode == emailVerificationCode) {// @ts-ignore 
+        if (club.emailVerificationCode == emailVerificationCode) {
           if (club.emailVerificationCodeExpires > now) {
             await ClubModel.updateOne(
               { _id: club._id },
@@ -345,6 +356,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
     });
 };
 
+
 // @desc Login for clubs
 // @route POST /api/club/login
 export const login = async (req: Request, res: Response) => {
@@ -354,7 +366,7 @@ export const login = async (req: Request, res: Response) => {
     return res.status(400).json({
       message: "1 or more parameter(s) missing from req.body",
     });
-  }
+  }  
 
   await ClubModel.find({ email })
     .then(async (club: Array<Club>) => {
@@ -380,7 +392,7 @@ export const login = async (req: Request, res: Response) => {
                 email: club[0].email,
                 name: club[0].name,
                 username: club[0].username,
-              }, // @ts-ignore
+              },
               process.env.JWT_SECRET,
               {
                 expiresIn: "30d",
@@ -441,7 +453,6 @@ export const updateProfile = async (req: UserRequest, res: Response, next: NextF
     password,
   } = req.body;
 
-  // @ts-ignore
   const clubId = req.user.userId;
 
   await ClubModel.findById(clubId)
@@ -514,8 +525,7 @@ export const updateProfile = async (req: UserRequest, res: Response, next: NextF
 
 // @desc Get club's profile -- Only for club admin
 // @route GET /api/club/profile
-export const getSelfProfile = async (req: Request, res: Response, next: NextFunction) => {
-  // @ts-ignore
+export const getSelfProfile = async (req: UserRequest, res: Response, next: NextFunction) => {
   const clubId = req.user.userId;
 
   await ClubModel.findById(clubId)
@@ -576,14 +586,14 @@ export const getClubDetails = async (req: Request, res: Response, next: NextFunc
 // @desc Get club's details via username
 // @route GET /api/club/details/username
 export const getClubDetailsUsername = async (req: Request, res: Response, next: NextFunction) => {
-  const { username } = req.query;
+  let username : string = <string> req.query.username
 
   if (!username) {
     return res.status(400).json({
       message: "1 or more parameter(s) missing from req.query",
     });
   }
-  // @ts-ignore
+
   await ClubModel.findOne({ username })
     .select(
       "name email type bio featured website username clubAvatar clubBanner clubImages socialMediaLinks mobileNumber typeOfPartner redirectURL"
@@ -678,9 +688,8 @@ export const getAllFeaturedClubs = async (req: Request, res: Response) => {
 };
 
 //
-export const uploadProfilePicture = async (req: Request, res: Response, next: NextFunction) => {
-  // @ts-ignore
-  const clubId = req.user.userId; // @ts-ignore
+export const uploadProfilePicture = async (req: UserRequest, res: Response, next: NextFunction) => {
+  const clubId = req.user.userId; //@ts-ignore
   const clubAvatar = req.file.location;
 
   await ClubModel.updateOne(
@@ -712,8 +721,7 @@ export const uploadProfilePicture = async (req: Request, res: Response, next: Ne
     });
 };
 
-export const uploadBanner = async (req: Request, res: Response, next: NextFunction) => {
-  // @ts-ignore
+export const uploadBanner = async (req: UserRequest, res: Response, next: NextFunction) => {
   const clubId = req.user.userId; // @ts-ignore
   const clubBanner = req.file.location;
 
@@ -746,8 +754,7 @@ export const uploadBanner = async (req: Request, res: Response, next: NextFuncti
     });
 };
 
-export const uploadImages = async (req: Request, res: Response, next: NextFunction) => {
-  // @ts-ignore
+export const uploadImages = async (req: UserRequest, res: Response, next: NextFunction) => {
   const clubId = req.user.userId; // @ts-ignore
   const clubBanner = req.file.location;
 

@@ -1,4 +1,4 @@
-import { model, Schema, Document } from 'mongoose';
+import { model, Schema, Document, Types } from 'mongoose';
 import { usersStartedInterface, usersFinishedInterface } from './test.model'
 
 export const DOCUMENT_NAME = 'Domain';
@@ -11,8 +11,8 @@ export interface selectionsInDomain {
 
 export default interface Domain extends Document {
   _id: any;
-  clubId?: Schema.Types.ObjectId;
-  testId?: Schema.Types.ObjectId;
+  clubId?: Types.ObjectId;
+  testId: Types.ObjectId;
   domainName?: string;
   domainDescription?: string;
   domainInstructions?: string;
@@ -20,7 +20,7 @@ export default interface Domain extends Document {
   domainDuration?: number;
   domainMarks?: number;
   usersStarted?: Array <usersStartedInterface>;
-  usersFinished?: Array <usersFinishedInterface>;
+  usersFinished: Array <usersFinishedInterface>;
   shortlistedInDomain?: Array <selectionsInDomain>;
   selectedInDomain?: Array <selectionsInDomain>;
 }

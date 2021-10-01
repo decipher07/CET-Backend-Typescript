@@ -1,4 +1,4 @@
-import { model, Schema, Document } from 'mongoose';
+import { model, Schema, Document, Types } from 'mongoose';
 
 export const DOCUMENT_NAME = 'Test';
 
@@ -38,7 +38,7 @@ export interface usersFinishedInterface {
 
 export default interface Test extends Document {
   _id: any;
-  clubId?: Schema.Types.ObjectId;
+  clubId: Types.ObjectId;
   roundType?: string;
   instructions?: string;
   graded?: boolean;
@@ -46,7 +46,7 @@ export default interface Test extends Document {
   published?: boolean;
   roundNumber?: number;
   duration?: number;
-  scheduledForDate?: number;
+  scheduledForDate: number;
   scheduledEndDate?: number;
   users?: Array<usersInterface>;
   usersStarted?: Array<usersStartedInterface>;

@@ -8,6 +8,20 @@ import {verify} from 'jsonwebtoken'
 import { UserRequest } from '../types/app-request'
 require('dotenv').config()
 
+declare var process : {
+  env: {
+    JWT_SECRET: string
+  }
+}
+
+declare interface userType {
+  userType : string, 
+  userId : string,
+  email : string,
+  name : string
+}
+
+
 const checkAuthClub = asyncHandler(async (req: UserRequest, res: Response, next: NextFunction) => {
   if (!req.headers.authorization)
     return res.status(401).json({
@@ -17,8 +31,7 @@ const checkAuthClub = asyncHandler(async (req: UserRequest, res: Response, next:
   const token = req.headers.authorization.split(" ")[1];
 
   try {
-    //@ts-ignore
-    const verified = verify(token, process.env.JWT_SECRET);
+    let verified : userType = <userType> verify(token, process.env.JWT_SECRET);
     req.user = verified;
     
     if (req.user.userType === "Club") {

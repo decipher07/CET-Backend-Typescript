@@ -3,8 +3,8 @@ import { hash, compare } from 'bcrypt'
 import { sign, verify } from 'jsonwebtoken'
 import { Types } from 'mongoose'
 import { SES } from 'aws-sdk'
-import Student, { StudentModel } from '../database/model/student.model' // @ts-ignore
-import  { sendVerificationOTP,sendWelcomeMail, shortlistedMgmt, shortlistedCC, shortlistedFrontend, shortlistedApp }  from '../utils/emailTemplates'
+import Student, { StudentModel } from '../database/model/student.model' 
+let  { sendVerificationOTP,sendWelcomeMail, shortlistedMgmt, shortlistedCC, shortlistedFrontend, shortlistedApp } = require( '../utils/emailTemplates' )
 import {errorLogger} from '../utils/logger'
 require('dotenv').config()
 

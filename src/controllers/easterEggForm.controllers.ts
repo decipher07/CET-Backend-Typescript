@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { Types } from 'mongoose'
-import EasterEggForm, { EasterEggFormModel } from '../database/model/easterEggForm.model'// @ts-ignore
+import EasterEggForm, { EasterEggFormModel } from '../database/model/easterEggForm.model'
 
 require('dotenv').config()
 

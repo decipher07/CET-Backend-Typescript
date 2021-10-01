@@ -20,7 +20,7 @@ export default interface Question extends Document {
   clubId: any;
   domainId: any;
   type?: string;
-  questionMarks?: number;
+  questionMarks: number;
   description?: string;
   media?: {mimetype?: string, url?: string, ext?: string, type?: typeinter};
   mediaURL?: string;

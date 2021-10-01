@@ -5,10 +5,10 @@ import Club, { ClubModel } from '../database/model/club.model'
 import Student, { StudentModel } from '../database/model/student.model'
 import Test, { TestModel } from '../database/model/test.model'
 import Domain, { DomainModel } from '../database/model/testDomain.model'
-import  {   sendVerificationOTP,sendWelcomeMail, shortlistedMgmt, shortlistedCC, shortlistedFrontend, shortlistedApp,
+let  {   sendVerificationOTP,sendWelcomeMail, shortlistedMgmt, shortlistedCC, shortlistedFrontend, shortlistedApp,
   shortlistedBackend, shortlistedML, shortlistedCloud, shortlistedCCD3, shortlistedEditorialD3,
-  shortlistedDesignD3, shortlistedMgmtD3, // @ts-ignore
-  shortlistedEasterEgg, }  from '../utils/emailTemplates'
+  shortlistedDesignD3, shortlistedMgmtD3,
+  shortlistedEasterEgg, }  = require('../utils/emailTemplates')
 import {errorLogger} from '../utils/logger'
 require('dotenv').config()
 
@@ -63,8 +63,8 @@ export const getAllFeaturedClubs = async (req: Request, res: Response) => {
 };
 
 export const getAllTestsOfAClub = async (req: Request, res: Response) => {
-  const { clubId } = req.query;
-  // @ts-ignore
+  const  clubId : string = <string> req.query.clubId;
+  
   await TestModel.find({ clubId })
     .populate("clubId", "name email")
     .then(async (tests) => {
@@ -80,8 +80,9 @@ export const getAllTestsOfAClub = async (req: Request, res: Response) => {
 };
 
 export const getAllPublishedTestsOfAClub = async (req: Request, res: Response, next: NextFunction) => {
-  const { clubId } = req.query;
-
+  
+  let clubId : string = <string> req.query.clubId
+  
   if (!clubId) {
     return res.status(400).json({
       message: "1 or more parameter(s) missing from req.query",
@@ -109,8 +110,8 @@ export const getAllPublishedTestsOfAClub = async (req: Request, res: Response, n
 };
 
 export const getAllDomainsOfATest = async (req: Request, res: Response, next: NextFunction) => {
-  const { testId } = req.query;
-  // @ts-ignore
+  const  testId  = <string> req.query.testId;
+  
   await DomainModel.find({ testId })
     .then(async (domains) => {
       res.status(200).json({
@@ -141,8 +142,7 @@ export const getDomainByID = async (req: Request, res: Response) => {
 export const clearEntriesFromDomainByStudentID = async (req: Request, res: Response) => {
   const { domainId, studentsArr, testId } = req.body;
 
-  // @ts-ignore
-  for (studentId of studentsArr) {
+  for (let studentId of studentsArr) {
     // console.log(studentId);
     await TestModel.updateOne(
       { _id: testId },
@@ -241,8 +241,8 @@ export const studentTestDashboard = async (req: Request, res: Response, next: Ne
 
 export const getDetailsOfMultipleStudents = async (req: Request, res: Response) => {
   const { studentsArr } = req.body;
-  let studentsFinalArray: Array<Student> = []; // @ts-ignore
-  for (studentId of studentsArr) {// @ts-ignore
+  let studentsFinalArray: Array<Student> = [];
+  for (let studentId of studentsArr) {
     await StudentModel.findById(studentId)
       .select("name email mobileNumber")
       .then(async (student: Student) => {
@@ -267,7 +267,7 @@ export const getDetailsOfMultipleStudents = async (req: Request, res: Response) 
 };
 
 export const sendShortlistEmail = async (req: Request, res: Response) => {
-  const { emails } = req.body;
+  const emails  : [string]= req.body.emails ;
 
   const SES_CONFIG = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -276,14 +276,14 @@ export const sendShortlistEmail = async (req: Request, res: Response) => {
   };
 
   const AWS_SES = new SES(SES_CONFIG);
-  // @ts-ignore
-  for (email of emails) {
+  
+  for (let email of emails) {
     // console.log(student.studentId.email);
     let params = {
       Source: "contact@codechefvit.com",
-      Destination: {// @ts-ignore
+      Destination: {
         ToAddresses: [email],
-      },// @ts-ignore
+      },
       ReplyToAddresses: [],
       Message: {
         Body: {
@@ -314,7 +314,7 @@ export const sendShortlistEmail = async (req: Request, res: Response) => {
 };
 
 export const sendWelcomeEmail = async (req: Request, res: Response) => {
-  const { emailArray } = req.body;
+  let  emailArray : [string] = req.body;
 
   const SES_CONFIG = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -328,7 +328,7 @@ export const sendWelcomeEmail = async (req: Request, res: Response) => {
     Source: "contact@codechefvit.com",
     Destination: {
       ToAddresses: emailArray,
-    },// @ts-ignore
+    },
     ReplyToAddresses: [],
     Message: {
       Body: {
@@ -355,17 +355,17 @@ export const sendWelcomeEmail = async (req: Request, res: Response) => {
 };
 
 export const whitelistEmails = async (req: Request, res: Response) => {
-  const { clubsArray } = req.body;
-  // @ts-ignore
-  for (club of clubsArray) {// @ts-ignore
+  let clubsArray : any = req.body.clubsArray
+  
+  for (let club of clubsArray) {
     await ClubModel.find({ email: club.email })
       .then(async (clubs: Array<Club>) => {
         if (clubs.length >= 1) {
           console.log("Club already exists: ", clubs[0].email);
         } else {
           let newClub = new ClubModel({
-            _id: new Types.ObjectId(),// @ts-ignore
-            email: club.email,// @ts-ignore
+            _id: new Types.ObjectId(),
+            email: club.email,
             typeOfPartner: club.typeOfPartner,
           });
           await newClub
@@ -375,9 +375,9 @@ export const whitelistEmails = async (req: Request, res: Response) => {
 
               let params = {
                 Source: "contact@codechefvit.com",
-                Destination: {// @ts-ignore
+                Destination: {
                   ToAddresses: [club.email],
-                },// @ts-ignore
+                },
                 ReplyToAddresses: [],
                 Message: {
                   Body: {
@@ -453,8 +453,8 @@ export const getAllSubmissionsOfDomain = async (req: Request, res: Response) => 
 };
 
 export const getNumSubmissionOfAllDomains = async (req: Request, res: Response) => {
-  const { testId } = req.query;
-  // @ts-ignore
+  let testId : string = <string> req.query.testId;
+  
   await DomainModel.find({ testId })
     // .populate({
     //   path: "usersFinished testId",
@@ -470,9 +470,8 @@ export const getNumSubmissionOfAllDomains = async (req: Request, res: Response) 
     .then(async (domains: Array <Domain>) => {
       // console.log(domains);
       // console.log(domains);
-      // @ts-ignore
-      console.log(domains[0].testId.roundType);// @ts-ignore
-      for (i in domains) {// @ts-ignore
+     
+      for (let i in domains) {
         console.log(domains[i].domainName, domains[i].usersFinished.length);
       }
 
@@ -505,18 +504,18 @@ export const getNumSubmissionOfAllDomains = async (req: Request, res: Response) 
 };
 
 export const getNumSubmissionOfAllDomainsofMultipleTests = async (req: Request, res: Response) => {
-  const { testIdArr } = req.body;
+  const  testIdArr : any = req.body;
   let studentIdsArr: Array <any> = [];
   let uniqueArr: Array<any> = [];
-  console.log("-----------------------------");// @ts-ignore
-  for (testId of testIdArr) {// @ts-ignore
+  console.log("-----------------------------");
+  for (let testId of testIdArr) {
     await DomainModel.find({ testId })
       .populate("testId", "roundType")
-      .then(async (domains: Array<Domain>) => {// @ts-ignore
-        console.log(domains[0].testId.roundType);// @ts-ignore
-        for (i in domains) {// @ts-ignore
-          console.log(domains[i].domainName, domains[i].usersFinished.length);// @ts-ignore
-          for (j in domains[i].usersFinished) {// @ts-ignore
+      .then(async (domains: Array<any>) => {
+        console.log(domains[0].testId.roundType);
+        for (let i in domains) {
+          console.log(domains[i].domainName, domains[i].usersFinished.length);
+          for (let j in domains[i].usersFinished) {
             studentIdsArr.push(domains[i].usersFinished[j].studentId);
           }
         }
@@ -572,16 +571,16 @@ export const getTotalUsersStarted = async (req: Request, res: Response) => {
   let studentIdsArr : Array <any> = [];
   let uniqueArr: Array<any> = [];
   
-  console.log("-----------------------------");// @ts-ignore
-  for (testId of testIdArr) {// @ts-ignore
+  console.log("-----------------------------");
+  for (let testId of testIdArr) {
     await DomainModel.find({ testId })
       .populate("testId", "roundType")
-      .then(async (domains: Array <Domain>) => {// @ts-ignore
-        console.log(domains[0].testId.roundType);// @ts-ignore
-        for (i in domains) {// @ts-ignore
-          console.log(domains[i].domainName, domains[i].usersStarted.length);// @ts-ignore
-          for (j in domains[i].usersStarted) {// @ts-ignore
-            studentIdsArr.push(domains[i].usersStarted[j].studentId);// @ts-ignore
+      .then(async (domains: Array <any>) => {
+        console.log(domains[0].testId.roundType);
+        for (let i in domains) {
+          console.log(domains[i].domainName, domains[i].usersStarted.length);
+          for (let j in domains[i].usersStarted) {
+            studentIdsArr.push(domains[i].usersStarted[j].studentId);
           }
         }
         console.log("-----------------------------");
@@ -602,7 +601,7 @@ export const getTotalUsersStarted = async (req: Request, res: Response) => {
 };
 
 export const getShortlistedStudentsOfADomain = async (req: Request, res: Response) => {
-  const { domainId } = req.query;
+  const  domainId : any = <any> req.query.domainId ;
 
   await DomainModel.findById(domainId)
     .populate(
@@ -612,11 +611,11 @@ export const getShortlistedStudentsOfADomain = async (req: Request, res: Respons
     // .populate({
     //   path: ""
     // })
-    .then(async (domain: Domain) => {
+    .then(async (domain: any) => {
       // console.log(domain.testId);
-      res.status(200).json({// @ts-ignore
+      res.status(200).json({
         testName: domain.testId.roundType,
-        domainName: domain.domainName,// @ts-ignore
+        domainName: domain.domainName,
         shortlistedInDomain: domain.shortlistedInDomain,
       });
     })
@@ -628,13 +627,13 @@ export const getShortlistedStudentsOfADomain = async (req: Request, res: Respons
 };
 
 export const getAllShortlistedStudentsOfClub = async (req: Request, res: Response) => {
-  const { clubId } = req.query;
+  const  clubId : string = <string> req.query.clubId ;
 
   let studentArr : Array <Student>= [];
-  // @ts-ignore
+  
   await TestModel.find({ clubId })
-    .then(async (tests: Array <Test>) => {// @ts-ignore
-      for (test of tests) {// @ts-ignore
+    .then(async (tests: Array <Test>) => {
+      for (let test of tests) {
         await DomainModel.find({ testId: test._id })
           .populate(
             "shortlistedInDomain.studentId testId",
